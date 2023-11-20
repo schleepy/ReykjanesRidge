@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Server", "ReykjanesRidge.Server\ReykjanesRidge.Server.csproj", "{CBBE9534-00F4-42B4-AD1E-DD88B34A9FD0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Repository", "ReykjanesRidge.Repository\ReykjanesRidge.Repository.csproj", "{94351CD7-0A02-4D73-AE11-26D1FAA29523}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Models", "ReykjanesRidge.Models\ReykjanesRidge.Models.csproj", "{0E4BBB35-DE02-49C1-B502-60CD3795D5AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Services", "ReykjanesRidge.Services\ReykjanesRidge.Services.csproj", "{A90C3DF5-196D-4389-8DC5-3682AC51BA6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Common", "ReykjanesRidge.Common\ReykjanesRidge.Common.csproj", "{63C8E3A6-89A5-4E73-B8AD-DED56DC918FD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CBBE9534-00F4-42B4-AD1E-DD88B34A9FD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBBE9534-00F4-42B4-AD1E-DD88B34A9FD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBBE9534-00F4-42B4-AD1E-DD88B34A9FD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBBE9534-00F4-42B4-AD1E-DD88B34A9FD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94351CD7-0A02-4D73-AE11-26D1FAA29523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94351CD7-0A02-4D73-AE11-26D1FAA29523}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94351CD7-0A02-4D73-AE11-26D1FAA29523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94351CD7-0A02-4D73-AE11-26D1FAA29523}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E4BBB35-DE02-49C1-B502-60CD3795D5AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E4BBB35-DE02-49C1-B502-60CD3795D5AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E4BBB35-DE02-49C1-B502-60CD3795D5AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E4BBB35-DE02-49C1-B502-60CD3795D5AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A90C3DF5-196D-4389-8DC5-3682AC51BA6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A90C3DF5-196D-4389-8DC5-3682AC51BA6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A90C3DF5-196D-4389-8DC5-3682AC51BA6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A90C3DF5-196D-4389-8DC5-3682AC51BA6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63C8E3A6-89A5-4E73-B8AD-DED56DC918FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63C8E3A6-89A5-4E73-B8AD-DED56DC918FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63C8E3A6-89A5-4E73-B8AD-DED56DC918FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63C8E3A6-89A5-4E73-B8AD-DED56DC918FD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9D9DC344-6442-43B2-882F-BF73973D7127}
+	EndGlobalSection
+EndGlobal
