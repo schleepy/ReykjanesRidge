@@ -23,7 +23,7 @@ namespace ReykjanesRidge.Server
 
             var connectionString = builder.Configuration.GetConnectionString("ApplicationContext");
             builder.Services.AddDbContext<ApplicationContext>(options =>
-                options.UseSqlite(connectionString, b => b.MigrationsAssembly("ReykjanesRidge.Server")).EnableSensitiveDataLogging());
+                options.UseSqlite(connectionString, b => b.MigrationsAssembly("ReykjanesRidge.Server")));//.EnableSensitiveDataLogging());
 
             // Settings
             builder.Services.Configure<EarthquakePopulatorSettings>(builder.Configuration.GetSection("EarthquakePopulator"));

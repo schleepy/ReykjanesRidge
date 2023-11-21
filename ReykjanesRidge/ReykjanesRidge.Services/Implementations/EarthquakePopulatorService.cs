@@ -12,6 +12,9 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace ReykjanesRidge.Services.Implementations
 {
@@ -20,6 +23,7 @@ namespace ReykjanesRidge.Services.Implementations
         private readonly IServiceProvider Services;
         private readonly EarthquakePopulatorSettings Settings;
         private readonly IMapper Mapper;
+        private readonly ILogger Logger;
 
         internal class MetOfficeEarthquake
         {
@@ -36,7 +40,7 @@ namespace ReykjanesRidge.Services.Implementations
 
             public static explicit operator Earthquake(MetOfficeEarthquake metOfficeEarthquake)
             {
-                return new Earthquake
+                Earthquake obj = new Earthquake
                 {
                     TimeStamp = metOfficeEarthquake.t,
                     Latitude = Convert.ToDouble(metOfficeEarthquake.lat),
@@ -46,6 +50,10 @@ namespace ReykjanesRidge.Services.Implementations
                     Quality = Convert.ToDouble(metOfficeEarthquake.q),
                     FriendlyLocation = $"{metOfficeEarthquake.dL} km {metOfficeEarthquake.dD.Trim()} of {metOfficeEarthquake.dR}"
                 };
+
+                obj.AlternativeID = $"{obj.TimeStamp.ToString("s")}_{Math.Ceiling(obj.Latitude)}_{Math.Ceiling(obj.Longitude)}_{Math.Ceiling(obj.Depth)}";
+
+                return obj;
             }
         }
 
@@ -58,6 +66,7 @@ namespace ReykjanesRidge.Services.Implementations
             Services = services;
             Settings = settings;
             Mapper = mapper;
+            Logger = logger;
         }
 
         public override async Task DoWork(object state)
@@ -72,9 +81,13 @@ namespace ReykjanesRidge.Services.Implementations
 
                 foreach (var earthquake in vedurEarthquakes)
                 {
-                    Earthquake existingEarthquake = null; // await Context.Earthquakes.FirstOrDefaultAsync(e => e.AlternativeID == earthquake.AlternativeID);
+                    Earthquake existingEarthquake = await Context.Earthquakes.FirstOrDefaultAsync(e => e.AlternativeID == earthquake.AlternativeID);
 
-                    await Context.Earthquakes.AddAsync(earthquake);
+                    if (existingEarthquake == null)
+                    {
+                        await Context.Earthquakes.AddAsync(earthquake);
+                        Logger.LogInformation($"Added {earthquake.AlternativeID}");
+                    }
                 }
 
                 await Context.SaveChangesAsync();

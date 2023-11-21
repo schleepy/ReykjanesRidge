@@ -22,6 +22,7 @@ namespace ReykjanesRidge.Models.Entities
                 return $"{TimeStamp.ToString("s")}_{Latitude}_{Longitude}_{Depth}_{Magnitude}_{Quality}";
             }
         }*/
+        public string AlternativeID { get; set; }
         public DateTime TimeStamp { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
