@@ -30,7 +30,7 @@ namespace ReykjanesRidge.Services.Implementations
 
         public virtual async Task ScheduleJob(CancellationToken cancellationToken)
         {
-            var next = CronExpression.Parse(Settings.CronExpression).GetNextOccurrence(DateTimeOffset.Now, Settings.TimeZoneInfo);
+            var next = CronExpression.Parse(Settings.CronExpression, CronFormat.IncludeSeconds).GetNextOccurrence(DateTimeOffset.Now, Settings.TimeZoneInfo);
             if (next.HasValue)
             {
                 var delay = next.Value - DateTimeOffset.Now;
