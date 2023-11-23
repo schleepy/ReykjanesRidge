@@ -15,6 +15,8 @@ using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using ReykjanesRidge.Common.Helpers;
+using Microsoft.Data.Sqlite;
 
 namespace ReykjanesRidge.Services.Implementations
 {
@@ -76,17 +78,27 @@ namespace ReykjanesRidge.Services.Implementations
             using (var scope = Services.CreateScope())
             {
                 ApplicationContext Context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+                var connection = (SqliteConnection)Context.Database.GetDbConnection();
+                connection.EnableExtensions(true);
+                //connection.LoadExtension(@"spellfix.dll");
 
                 var vedurEarthquakes = await ScrapeVedurIs();
 
                 foreach (var earthquake in vedurEarthquakes)
                 {
-                    Earthquake existingEarthquake = await Context.Earthquakes.FirstOrDefaultAsync(e => e.AlternativeID == earthquake.AlternativeID);
+                    //Earthquake existingEarthquake = Context.Earthquakes.FromSqlRaw<Earthquake>("SELECT 1 FROM [Earthquakes]").FirstOrDefault();
+                    var existingEarthquake = await Context.Earthquakes.FirstOrDefaultAsync(e => e.AlternativeID == earthquake.AlternativeID);
 
-                    if (existingEarthquake == null)
+                    if (existingEarthquake == null) // new earthquake
                     {
                         await Context.Earthquakes.AddAsync(earthquake);
                         Logger.LogInformation($"Added {earthquake.AlternativeID}");
+                    } 
+                    else
+                    {
+                        /*earthquake.ID = existingEarthquake.ID;
+                        Context.Earthquakes.Update(earthquake);
+                        Logger.LogInformation($"Updated earthquake with id {existingEarthquake.ID}");*/
                     }
                 }
 

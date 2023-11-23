@@ -8,11 +8,13 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="Cronos" Version="0.7.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.17" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ReykjanesRidge.Common\ReykjanesRidge.Common.csproj" />
     <ProjectReference Include="..\ReykjanesRidge.Models\ReykjanesRidge.Models.csproj" />
     <ProjectReference Include="..\ReykjanesRidge.Repository\ReykjanesRidge.Repository.csproj" />
   </ItemGroup>

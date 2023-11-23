@@ -10,7 +10,9 @@ namespace ReykjanesRidge.Repository
     {
         public DbSet<Earthquake> Earthquakes { get; set; }
 
-        public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options) { }
+        public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options) 
+        { 
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

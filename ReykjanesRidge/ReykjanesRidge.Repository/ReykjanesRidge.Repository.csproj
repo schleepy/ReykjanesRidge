@@ -13,4 +13,14 @@
     <ProjectReference Include="..\ReykjanesRidge.Models\ReykjanesRidge.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Extensions\spellfix.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
