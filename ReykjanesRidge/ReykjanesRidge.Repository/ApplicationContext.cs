@@ -22,8 +22,8 @@ namespace ReykjanesRidge.Repository
                 .Property(c => c.ID)
                 .ValueGeneratedOnAdd();
 
-            modelBuilder.Entity<Earthquake>()
-                .HasAlternateKey(e => e.AlternativeID);
+            /*modelBuilder.Entity<Earthquake>()
+                .HasAlternateKey(e => e.AlternativeID);*/
         }
     }
 }

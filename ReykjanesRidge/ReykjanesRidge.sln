@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Server", "ReykjanesRidge.Server\ReykjanesRidge.Server.csproj", "{CBBE9534-00F4-42B4-AD1E-DD88B34A9FD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReykjanesRidge.Server", "ReykjanesRidge.Server\ReykjanesRidge.Server.csproj", "{CBBE9534-00F4-42B4-AD1E-DD88B34A9FD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Repository", "ReykjanesRidge.Repository\ReykjanesRidge.Repository.csproj", "{94351CD7-0A02-4D73-AE11-26D1FAA29523}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReykjanesRidge.Repository", "ReykjanesRidge.Repository\ReykjanesRidge.Repository.csproj", "{94351CD7-0A02-4D73-AE11-26D1FAA29523}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Models", "ReykjanesRidge.Models\ReykjanesRidge.Models.csproj", "{0E4BBB35-DE02-49C1-B502-60CD3795D5AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReykjanesRidge.Models", "ReykjanesRidge.Models\ReykjanesRidge.Models.csproj", "{0E4BBB35-DE02-49C1-B502-60CD3795D5AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Services", "ReykjanesRidge.Services\ReykjanesRidge.Services.csproj", "{A90C3DF5-196D-4389-8DC5-3682AC51BA6E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReykjanesRidge.Services", "ReykjanesRidge.Services\ReykjanesRidge.Services.csproj", "{A90C3DF5-196D-4389-8DC5-3682AC51BA6E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReykjanesRidge.Common", "ReykjanesRidge.Common\ReykjanesRidge.Common.csproj", "{63C8E3A6-89A5-4E73-B8AD-DED56DC918FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReykjanesRidge.Common", "ReykjanesRidge.Common\ReykjanesRidge.Common.csproj", "{63C8E3A6-89A5-4E73-B8AD-DED56DC918FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

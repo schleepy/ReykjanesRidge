@@ -1,0 +1,28 @@
+﻿@page "/earthquakes"
+
+@inject IJSRuntime JSRuntime
+
+<h3>Earthquakes</h3>
+
+<div id="threejscontainer" style="width: 300px; height: 300px;"></div>
+<button type="button" class="btn btn-primary" @onclick="AddEarthquake">
+    Stop
+</button>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./Pages/Earthquakes.razor.js");
+        }
+
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load");
+    }
+
+    public async Task AddEarthquake()
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addEarthquake");
+    }
+}
