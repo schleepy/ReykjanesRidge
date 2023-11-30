@@ -25,6 +25,8 @@ namespace ReykjanesRidge.Services.Implementations
     {
         private readonly IServiceProvider Services;
         private readonly EarthquakePopulatorSettings Settings;
+        private readonly ApplicationContext Context;
+        private readonly EarthquakeNotifierService EarthquakeNotifierService;
         private readonly IMapper Mapper;
 
         internal class MetOfficeEarthquake
@@ -68,51 +70,53 @@ namespace ReykjanesRidge.Services.Implementations
             Services = services;
             Settings = settings;
             Mapper = mapper;
+
+            var scope = Services.CreateScope();
+            Context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+            EarthquakeNotifierService = scope.ServiceProvider.GetRequiredService<EarthquakeNotifierService>();
         }
 
         public override async Task DoWork(object state)
         {
             Logger.LogInformation("Retreiving earthquakes");
 
-            using (var scope = Services.CreateScope())
+            //var connection = (SqliteConnection)Context.Database.GetDbConnection();
+            //connection.EnableExtensions(true);
+            //connection.LoadExtension(@"spellfix.dll");
+
+            var vedurEarthquakes = await ScrapeVedurIs();
+
+            foreach (var earthquake in vedurEarthquakes)
             {
-                using (var Context = scope.ServiceProvider.GetRequiredService<ApplicationContext>()) {
-                    var connection = (SqliteConnection)Context.Database.GetDbConnection();
-                    connection.EnableExtensions(true);
-                    //connection.LoadExtension(@"spellfix.dll");
+                //Earthquake existingEarthquake = Context.Earthquakes.FromSqlRaw<Earthquake>("SELECT 1 FROM [Earthquakes]").FirstOrDefault();
+                var existingEarthquake = (await Context.Earthquakes.ToListAsync())
+                    .FirstOrDefault(e =>
+                    StringHelper.LevenshteinDistance(e.AlternativeID, earthquake.AlternativeID) <= 3);
 
-                    var vedurEarthquakes = await ScrapeVedurIs();
-
-                    foreach (var earthquake in vedurEarthquakes)
-                    {
-                        //Earthquake existingEarthquake = Context.Earthquakes.FromSqlRaw<Earthquake>("SELECT 1 FROM [Earthquakes]").FirstOrDefault();
-                        var existingEarthquake = (await Context.Earthquakes.ToListAsync())
-                            .FirstOrDefault(e =>
-                            StringHelper.LevenshteinDistance(e.AlternativeID, earthquake.AlternativeID) <= 3);
-
-                        if (existingEarthquake == null) // new earthquake
-                        {
-                            await Context.Earthquakes.AddAsync(Mapper.Map<Earthquake>(earthquake));
-                            Logger.LogInformation($"Added {earthquake.AlternativeID}");
-                        }
-                        else // Earthquake exists
-                        {
-                            var updatedEarthquake = Mapper.Map(earthquake, existingEarthquake);
-                            if (existingEarthquake != updatedEarthquake) // Some changes were observed
-                            {
-                                existingEarthquake = updatedEarthquake;
-                                Context.Earthquakes.Update(existingEarthquake);
-                                Logger.LogInformation($"Updated earthquake with id {existingEarthquake.ID}");
-                            }
-                        }
-                    }
-
+                if (existingEarthquake == null) // new earthquake
+                {
+                    var addedEarthquake = Mapper.Map<EarthquakeDto>((await Context.Earthquakes.AddAsync(Mapper.Map<Earthquake>(earthquake))).Entity);
+                    EarthquakeNotifierService.EarthquakeAdded(addedEarthquake);
                     await Context.SaveChangesAsync();
-                }
 
-                // Get dump of latest earthquakes
-                // See what needs updating
+                    Logger.LogInformation($"Added {earthquake.AlternativeID}");
+                }
+                else // Earthquake exists
+                {
+                    var updatedEarthquake = Mapper.Map(earthquake, existingEarthquake);
+                    if (existingEarthquake != updatedEarthquake) // Some changes were observed
+                    {
+                        existingEarthquake = updatedEarthquake;
+                        Context.Earthquakes.Update(existingEarthquake);
+                        Logger.LogInformation($"Updated earthquake with id {existingEarthquake.ID}");
+                        await Context.SaveChangesAsync();
+                    }
+                }
             }
+
+
+            // Get dump of latest earthquakes
+            // See what needs updating
 
             await base.DoWork(state);
         }

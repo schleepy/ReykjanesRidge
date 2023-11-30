@@ -19,8 +19,8 @@ namespace ReykjanesRidge.Server
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
-            builder.Services.AddSingleton<WeatherForecastService>();
             builder.Services.AddScoped<EarthquakeService>();
+            builder.Services.AddSingleton<EarthquakeNotifierService>();
 
             var connectionString = builder.Configuration.GetConnectionString("ApplicationContext");
             builder.Services.AddDbContext<ApplicationContext>(options =>

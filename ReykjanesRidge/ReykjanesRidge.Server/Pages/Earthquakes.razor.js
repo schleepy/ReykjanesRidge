@@ -57,11 +57,9 @@ function loadScene() {
 }
 
 function AddEarthquake(earthquake) {
-    console.log(earthquake["magnitude"]);
     var magnitudeColor = new THREE.Color('rgb(0, 255, 0)');
     var magnitude = earthquake["magnitude"];
     if (magnitude > 1) {
-        console.log("larger than 0.1");
         magnitudeColor = new THREE.Color('rgb(255, 255, 0)');
     } else if (magnitude > 2) {
         magnitudeColor = new THREE.Color('rgb(255, 0, 0)');
@@ -74,6 +72,8 @@ function AddEarthquake(earthquake) {
     sphere.position.setY(Math.floor(Math.random() * 30));
     sphere.position.setZ(Math.floor(Math.random() * 30));
     sphere.material.color.set(magnitudeColor);
+
+    console.log("added earthquake" + magnitude);
 }
 
 /*window.ThreeJSFunctions = {
