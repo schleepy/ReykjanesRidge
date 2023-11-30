@@ -20,6 +20,7 @@ namespace ReykjanesRidge.Server
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
             builder.Services.AddSingleton<WeatherForecastService>();
+            builder.Services.AddScoped<EarthquakeService>();
 
             var connectionString = builder.Configuration.GetConnectionString("ApplicationContext");
             builder.Services.AddDbContext<ApplicationContext>(options =>

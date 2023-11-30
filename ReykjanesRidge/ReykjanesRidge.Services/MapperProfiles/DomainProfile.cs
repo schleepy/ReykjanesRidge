@@ -13,6 +13,8 @@ namespace ReykjanesRidge.Services.MapperProfiles
         {
             CreateMap<EarthquakeDto, Earthquake>()
                 .ForMember(e => e.ID, opt => opt.Ignore());
+
+            CreateMap<Earthquake, EarthquakeDto>();
         }
     }
 }

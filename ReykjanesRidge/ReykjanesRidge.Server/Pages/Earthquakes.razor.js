@@ -3,7 +3,7 @@ import { ColladaLoader } from '/js/threejs/loaders/ColladaLoader.js';
 import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 
 var container, clock, controls;
-var camera, scene, renderer, mixer, animations, avatar, sphere;
+var camera, scene, renderer, mixer, animations, avatar;
 
 function animate() {
     requestAnimationFrame(animate);
@@ -34,7 +34,7 @@ function loadScene() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
 
-    var gridHelper = new THREE.GridHelper(10, 20);
+    var gridHelper = new THREE.GridHelper(100, 200);
     scene.add(gridHelper);
 
     var ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
@@ -44,27 +44,36 @@ function loadScene() {
     scene.add(camera);
     camera.add(pointLight);
 
-    const geometry = new THREE.SphereGeometry(15, 32, 16);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    const sphere = new THREE.Mesh(geometry, material);
-    scene.add(sphere);
-
     camera.position.z = 5;
 
     controls = new OrbitControls(camera, renderer.domElement);
     controls.screenSpacePanning = true;
     controls.minDistance = 5;
-    controls.maxDistance = 40;
+    controls.maxDistance = 500;
     controls.target.set(0, 2, 0);
     controls.update();  
 
     animate();
 }
 
-function AddEarthquake() {
-    const geometry = new THREE.SphereGeometry(1, 32, 16);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    sphere = new THREE.Mesh(geometry, material); scene.add(sphere);
+function AddEarthquake(earthquake) {
+    console.log(earthquake["magnitude"]);
+    var magnitudeColor = new THREE.Color('rgb(0, 255, 0)');
+    var magnitude = earthquake["magnitude"];
+    if (magnitude > 1) {
+        console.log("larger than 0.1");
+        magnitudeColor = new THREE.Color('rgb(255, 255, 0)');
+    } else if (magnitude > 2) {
+        magnitudeColor = new THREE.Color('rgb(255, 0, 0)');
+    }
+    let geometry = new THREE.SphereGeometry(earthquake["magnitude"], 32, 10);
+    let material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    let sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
+    sphere.position.setX(Math.floor(Math.random() * 30));
+    sphere.position.setY(Math.floor(Math.random() * 30));
+    sphere.position.setZ(Math.floor(Math.random() * 30));
+    sphere.material.color.set(magnitudeColor);
 }
 
 /*window.ThreeJSFunctions = {
@@ -75,7 +84,7 @@ function AddEarthquake() {
 
 window.EarthquakeVisualizerJS = {
     load: () => { loadScene(); },
-    addEarthquake: () => { AddEarthquake(); }
+    addEarthquake: (earthquake) => { AddEarthquake(earthquake); }
 };
 
-window.onload = loadScene;
+//window.onload = loadScene;
