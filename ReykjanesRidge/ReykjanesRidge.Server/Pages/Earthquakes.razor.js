@@ -44,6 +44,11 @@ function loadScene() {
     scene.add(camera);
     camera.add(pointLight);
 
+    let geometry = new THREE.SphereGeometry(100, 32, 32);
+    let material = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    let sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
+
     camera.position.z = 5;
 
     controls = new OrbitControls(camera, renderer.domElement);
@@ -58,22 +63,39 @@ function loadScene() {
 
 function AddEarthquake(earthquake) {
     var magnitudeColor = new THREE.Color('rgb(0, 255, 0)');
-    var magnitude = earthquake["magnitude"];
+    var magnitude = earthquake["magnitude"] / 10;
     if (magnitude > 1) {
         magnitudeColor = new THREE.Color('rgb(255, 255, 0)');
     } else if (magnitude > 2) {
         magnitudeColor = new THREE.Color('rgb(255, 0, 0)');
     }
-    let geometry = new THREE.SphereGeometry(earthquake["magnitude"], 32, 10);
-    let material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    let geometry = new THREE.SphereGeometry(magnitude, 32, 10);
+    let material = new THREE.MeshBasicMaterial({ color: 0xffffff });
     let sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
-    sphere.position.setX(Math.floor(Math.random() * 30));
+    var position = convertcoords(earthquake["latitude"], earthquake["longitude"]);
+    console.log(position);
+    //sphere.position.set(position);
+    sphere.position.setX(position.x);
+    sphere.position.setY(position.y);
+    sphere.position.setZ(position.z);
+    /*sphere.position.setX(Math.floor(Math.random() * 30));
     sphere.position.setY(Math.floor(Math.random() * 30));
-    sphere.position.setZ(Math.floor(Math.random() * 30));
+    sphere.position.setZ(Math.floor(Math.random() * 30));*/
     sphere.material.color.set(magnitudeColor);
 
     console.log("added earthquake" + magnitude);
+}
+
+function convertcoords(lat, lon) {
+    var radius = 100;
+    var phi = (90 - lat) * (Math.PI / 180),
+        theta = (lon + 180) * (Math.PI / 180),
+        x = -((radius) * Math.sin(phi) * Math.cos(theta)),
+        z = ((radius) * Math.sin(phi) * Math.sin(theta)),
+        y = ((radius) * Math.cos(phi));
+
+    return new THREE.Vector3(x, y, z);
 }
 
 /*window.ThreeJSFunctions = {

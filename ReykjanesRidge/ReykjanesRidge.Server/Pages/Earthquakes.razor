@@ -4,19 +4,12 @@
 @using ReykjanesRidge.Services.Implementations;
 @inject IJSRuntime JSRuntime
 @inject EarthquakeService EarthquakeService;
-@inject EarthquakeNotifierService EarthquakePopulatorService;
 
 <h3>Earthquakes</h3>
 
 <div id="threejscontainer" style="width: 300px; height: 300px;"></div>
 
 @code {
-
-    protected override async Task OnInitializedAsync()
-    {
-        EarthquakePopulatorService.OnEarthquakeAdded += AddEarthquake;
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -28,14 +21,16 @@
         }
 
         var earthquakes = await EarthquakeService.GetAll();
-
+        
         foreach (var earthquake in earthquakes)
         {
-            AddEarthquake(earthquake);
+            await AddEarthquake(earthquake);
         }
+
+        //await AddEarthquake(await EarthquakeService.GetOne());
     }
 
-    public async void AddEarthquake(EarthquakeDto earthquakeDto)
+    public async Task AddEarthquake(EarthquakeDto earthquakeDto)
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addEarthquake", earthquakeDto);
     }

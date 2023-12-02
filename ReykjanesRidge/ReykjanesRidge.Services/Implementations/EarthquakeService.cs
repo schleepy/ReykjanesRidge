@@ -31,5 +31,10 @@ namespace ReykjanesRidge.Services.Implementations
         {
             return Mapper.Map<List<EarthquakeDto>>(await Context.Earthquakes.ToListAsync());
         }
+
+        public async Task<EarthquakeDto> GetOne()
+        {
+            return Mapper.Map<EarthquakeDto>(await Context.Earthquakes.FirstOrDefaultAsync());
+        }
     }
 }
