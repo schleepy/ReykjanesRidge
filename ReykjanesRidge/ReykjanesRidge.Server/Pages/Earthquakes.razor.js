@@ -4,14 +4,20 @@ import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
 
 var container, clock, controls;
-var camera, scene, renderer, mixer, animations, avatar;
+var camera, scene, renderer, mixer, animations, iceland;
 
+const earthRadius = 6371; // radius of earth in kilometers, needed for GCS to cartesian conversion
 const cameraStartingPos = new THREE.Vector3(357, 388, 113);
 const cameraStartingFocusPoint = new THREE.Vector3(30, -50, -20);
+const magnitudeColors = [ // colors based on magnitude, magnitude is floored and used as key
+    "rgb(255, 255, 255)",
+    "rgb(0, 255, 0)",
+    "rgb(255, 255, 0)",
+    "rgb(255, 0, 0)"
+];
 
 function animate() {
     requestAnimationFrame(animate);
-
     renderer.render(scene, camera);
 }
 
@@ -21,6 +27,28 @@ function render() {
         mixer.update(delta);
     }
     renderer.render(scene, camera);
+}
+
+/**
+ * Loads an FBX model asynchronously
+ * @param {string} path path to model
+ * @param {string} context which context to add object to, scene, group, etc.
+ */
+
+function loadFBX(path, context) {
+    const fbxLoader = new FBXLoader()
+    fbxLoader.load(
+        '/models/iceland_flat_svg.fbx',
+        (object) => {
+            object.scale.set(.4, .4, .4)
+            //object.position.setY(-1)
+            object.position.setX(36);
+            object.position.setZ(-20);
+            object.rotation.y = (-22.7 * (Math.PI / 180))
+            let material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            context.add(object)
+        }
+    );
 }
 
 // Load initial scene and populate with earthquakes
@@ -39,25 +67,11 @@ function loadScene() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
 
-    // FBX Loader
-    const fbxLoader = new FBXLoader()
-    fbxLoader.load(
-        '/models/iceland_flat_svg.fbx',
-        (object) => {
-            object.scale.set(.4, .4, .4)
-            //object.position.setY(-1)
-            object.position.setX(36);
-            object.position.setZ(-20);
-            object.rotation.y = (-22.7 * (Math.PI / 180))
-            scene.add(object)
-        },
-        (xhr) => {
-            console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-        },
-        (error) => {
-            console.log(error)
-        }
-    )
+    iceland = new THREE.Group();
+
+    var icelandModel = loadFBX('/models/iceland_flat_svg.fbx', iceland);
+
+    scene.add(iceland);
 
     /*var gridHelper = new THREE.GridHelper(100, 2);
     scene.add(gridHelper);*/
@@ -81,45 +95,42 @@ function loadScene() {
 
 function AddEarthquake(earthquake) {
 
-    var magnitudeColor = new THREE.Color('rgb(0, 255, 0)');
+    if (iceland == null)
+        return
 
-    var magnitude = earthquake["magnitude"] / 2;
+    var magnitude = earthquake["magnitude"];
+    var magnitudeColor = new THREE.Color(magnitudeColors[Math.floor(magnitude)]);
 
-    if (magnitude > 1) {
-
-        magnitudeColor = new THREE.Color('rgb(255, 255, 0)');
-
-    } else if (magnitude > 2) {
-
-        magnitudeColor = new THREE.Color('rgb(255, 0, 0)');
-
-    }
-
-    let geometry = new THREE.SphereGeometry(magnitude, 32, 10);
-    let material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    let geometry = new THREE.SphereGeometry(magnitude/2, 32, 10);
+    let material = new THREE.MeshStandardMaterial({ color: 0xffffff });
     let sphere = new THREE.Mesh(geometry, material);
 
-    scene.add(sphere);
-
     // Get X and Y position from longitude and latitude
-    var position = convertcoords(earthquake["latitude"], earthquake["longitude"]);
+    var position = GCStoCartesian(earthquake["latitude"], earthquake["longitude"]);
 
     // Offset, fix this later
     position.x -= 2530; 
     position.z -= 900;
 
-    sphere.position.setX(position.x);
-    sphere.position.setZ(position.z);
+    sphere.position.copy(position);
 
     sphere.position.setY(-(earthquake["depth"])); // Set depth
 
     sphere.material.color.set(magnitudeColor);
+    sphere.material.emissive.set(magnitudeColor);
+    sphere.material.transparent = true;
+    sphere.material.opacity = 0.6;
+    sphere.name = earthquake["ID"];
+
+    iceland.add(sphere);
 
     console.log("added earthquake" + magnitude);
 }
 
-function convertcoords(lat, lon) {
-    var radius = 6371; // Radius of the earth in kilometers
+/*
+    GCS coordinates to Cartesian coordinate conversion
+*/
+function GCStoCartesian(lat, lon, radius = earthRadius) {
     var phi = (90 - lat) * (Math.PI / 180),
         theta = (lon + 180) * (Math.PI / 180),
         x = -((radius) * Math.sin(phi) * Math.cos(theta)),
@@ -131,7 +142,8 @@ function convertcoords(lat, lon) {
 
 window.EarthquakeVisualizerJS = {
     load: () => { loadScene(); },
-    addEarthquake: (earthquake) => { AddEarthquake(earthquake); }
+    addEarthquake: (earthquake) => { AddEarthquake(earthquake); },
+    setCameraPos: (x, y, z) => { setCameraPosition(x, y, z) }
 };
 
 function Debug() {
@@ -140,6 +152,16 @@ function Debug() {
         console.log(camera.position);
     }
     setTimeout(Debug, 5000);
+}
+
+function setCameraPosition(x, y, z)
+{
+    if (camera == null)
+        return;
+
+    camera.position.x = x;
+    camera.position.y = y;
+    camera.position.z = z;
 }
 
 Debug();
