@@ -7,6 +7,7 @@ using ReykjanesRidge.Repository;
 using ReykjanesRidge.Server.Data;
 using ReykjanesRidge.Services.Implementations;
 using AutoMapper;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace ReykjanesRidge.Server
 {
@@ -47,6 +48,15 @@ namespace ReykjanesRidge.Server
             }
 
             app.UseHttpsRedirection();
+
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings.Add(".fbx", "text/xml");
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                ContentTypeProvider = provider
+            });
+
+            app.UseStaticFiles();
 
             app.UseStaticFiles();
 

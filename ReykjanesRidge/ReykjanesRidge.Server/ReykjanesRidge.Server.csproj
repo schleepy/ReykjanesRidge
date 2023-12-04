@@ -22,4 +22,15 @@
     <ProjectReference Include="..\ReykjanesRidge.Services\ReykjanesRidge.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\js\threejs\curves\" />
+    <Folder Include="wwwroot\js\threejs\libs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\models\iceland.fbx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
