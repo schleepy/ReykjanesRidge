@@ -3,8 +3,37 @@ import { ColladaLoader } from '/js/threejs/loaders/ColladaLoader.js';
 import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
 
-var container, clock, controls;
+var container = document.getElementById('threejscontainer');
+var clock, controls;
 var camera, scene, renderer, mixer, animations, iceland;
+
+$(document).ready(function () {
+
+    $(window).resize(function () {
+
+        if (renderer == null || camera == null)
+            return;
+
+        var box = container.getBoundingClientRect();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix()
+        console.log("reeesiiizing");
+    });
+});
+
+/*document.addEventListener('resize', onContainerResize);
+
+function onContainerResize() {
+    var box = container.getBoundingClientRect();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix()
+    console.log("reeesiiizing");
+    // optional animate/renderloop call put here for render-on-changes
+}*/
 
 const earthRadius = 6371; // radius of earth in kilometers, needed for GCS to cartesian conversion
 const cameraStartingPos = new THREE.Vector3(357, 388, 113);
@@ -54,7 +83,6 @@ function loadFBX(path, context) {
 // Load initial scene and populate with earthquakes
 function loadScene() {
 
-    container = document.getElementById('threejscontainer');
     if (!container) {
         return;
     }
