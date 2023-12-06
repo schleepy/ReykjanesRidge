@@ -401,3 +401,5 @@ FodyWeavers.xsd
 *.db
 *.db-shm
 *.db-wal
+/ReykjanesRidge/ReykjanesRidge.Server/ApplicationContext.db-shm
+/ReykjanesRidge/ReykjanesRidge.Server/ApplicationContext.db-wal
