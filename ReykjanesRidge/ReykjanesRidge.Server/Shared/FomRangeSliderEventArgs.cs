@@ -1,6 +1,6 @@
 ﻿namespace ReykjanesRidge.Server.Shared
 {
-    public struct wot
+    public class FomRangeSliderEventArgs : EventArgs
     {
         public int Range { get; set; }
         public int FirstValue { get; set; }

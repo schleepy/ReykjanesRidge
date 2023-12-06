@@ -1,11 +1,11 @@
 ﻿@inject IJSRuntime JSRuntime;
 
-<div id="slider-1" class="ui @(Labeled ? "labeled" : "") @(Ticked ? "ticked": "") range slider"></div>
+<div id="@Id" class="ui @(Labeled ? "labeled" : "") @(Ticked ? "ticked" : "") range slider"></div>
 
 @code {
 
     [Parameter]
-    public string Id { get; set; } = "slider-1";
+    public string? Id { get; set; }
     [Parameter]
     public int Min { get; set; } = 0;
     [Parameter]
@@ -23,7 +23,15 @@
     [Parameter]
     public bool Ticked { get; set; } = false;
     [Parameter]
-    public EventCallback<wot> OnValueChanged { get; set; }
+    public EventCallback<FomRangeSliderEventArgs> OnValueChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Id))
+        {
+            Id = Guid.NewGuid().ToString();
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -41,6 +49,7 @@
     [JSInvokable("valueChanged")]
     public async void ValueChanged(int range, int firstVal, int secondVal)
     {
-        await OnValueChanged.InvokeAsync(new wot{ Range = 3, FirstValue = firstVal, SecondValue = secondVal});
+        var args = new FomRangeSliderEventArgs { Range = 3, FirstValue = firstVal, SecondValue = secondVal };
+        await OnValueChanged.InvokeAsync(args);
     }
 }
