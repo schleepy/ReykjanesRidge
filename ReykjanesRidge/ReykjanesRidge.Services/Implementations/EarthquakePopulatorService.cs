@@ -89,9 +89,10 @@ namespace ReykjanesRidge.Services.Implementations
             foreach (var earthquake in vedurEarthquakes)
             {
                 //Earthquake existingEarthquake = Context.Earthquakes.FromSqlRaw<Earthquake>("SELECT 1 FROM [Earthquakes]").FirstOrDefault();
-                var existingEarthquake = (await Context.Earthquakes.ToListAsync())
+                /*var existingEarthquake = (await Context.Earthquakes.ToListAsync())
                     .FirstOrDefault(e =>
-                    StringHelper.LevenshteinDistance(e.AlternativeID, earthquake.AlternativeID) <= 3);
+                    StringHelper.LevenshteinDistance(e.AlternativeID, earthquake.AlternativeID) <= 3);*/
+                var existingEarthquake = (await Context.Earthquakes.FirstOrDefaultAsync(e => e.AlternativeID == earthquake.AlternativeID));
 
                 if (existingEarthquake == null) // new earthquake
                 {

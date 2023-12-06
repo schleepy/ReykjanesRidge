@@ -11,8 +11,8 @@ using ReykjanesRidge.Repository;
 namespace ReykjanesRidge.Server.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20231120202306_added_alternative_id_to_earthquake")]
-    partial class added_alternative_id_to_earthquake
+    [Migration("20231206010120_init")]
+    partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -52,8 +52,6 @@ namespace ReykjanesRidge.Server.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("ID");
-
-                    b.HasAlternateKey("AlternativeID");
 
                     b.ToTable("Earthquakes");
                 });
