@@ -29,6 +29,8 @@
     public bool ShowThumbTooltip { get; set; } = false;
     [Parameter]
     public string Color { get; set; } = "black";
+    [Parameter]
+    public int[] RestrictedLabels { get; set; } = new int[0] { };
 
     [Parameter]
     public double Range { get; set; }
@@ -61,7 +63,7 @@
 
             var dotNetReference = DotNetObjectReference.Create(this);
 
-            await JSRuntime.InvokeVoidAsync("fomRangeSlider.init", dotNetReference, Id, Min, Max, Start, End, Step, Smooth, ShowThumbTooltip, Color);
+            await JSRuntime.InvokeVoidAsync("fomRangeSlider.init", dotNetReference, Id, Min, Max, Start, End, Step, Smooth, ShowThumbTooltip, Color, RestrictedLabels);
         }
     }
 

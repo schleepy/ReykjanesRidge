@@ -11,53 +11,54 @@
 
 <div id="controls" class="ui sidebar right inverted vertical menu" style="width:400px;background-color:rgba(255, 0, 0, 0);overflow:hidden">
     <div style="padding:20px">
-    <SemLabel>Magnitude range</SemLabel>
-    <FomRangeSlider 
-        OnValueChanged="FilterChanged"
-        Smooth=true 
-        Labeled=true
-        BottomAlignedLabels=true
-        Min=MinMagnitude
-        Max=MaxMagnitude
-        Ticked=true
-        Step=0.1
-        ShowThumbTooltip=true
-        Color="teal"
-        @bind-FirstValue=MinMagnitude
-        @bind-SecondValue=MaxMagnitude>
-    </FomRangeSlider>
-    <SemLabel>Hours since occurance</SemLabel>
-    <FomRangeSlider
-        OnValueChanged="FilterChanged"
-        Min=MinHours
-        Max=MaxHours
-        Start=MinHours
-        End=MaxHours
-        Ticked=true
-        Color="blue"
-        BottomAlignedLabels=true
-        ShowThumbTooltip=true
-        @bind-FirstValue=MinHours
-        @bind-SecondValue=MaxHours
-        Smooth=false 
-        Labeled=true>
-    </FomRangeSlider>
-    <SemLabel>Depth range</SemLabel>
-    <FomRangeSlider
-        OnValueChanged="FilterChanged"
-        Min=MinDepth
-        Max=MaxDepth
-        Start=_userSetMinDepth
-        End=_userSetMaxDepth
-        BottomAlignedLabels=true
-        Ticked=true
-        Color="violet"
-        ShowThumbTooltip=true
-        @bind-FirstValue=_userSetMinDepth
-        @bind-SecondValue=_userSetMaxDepth
-        Smooth=false 
-        Labeled=true>
-    </FomRangeSlider>
+        <span style="color:white">Magnitude range</span>
+        <FomRangeSlider 
+            OnValueChanged="FilterChanged"
+            Smooth=true 
+            Labeled=true
+            BottomAlignedLabels=true
+            Min=MinMagnitude
+            Max=MaxMagnitude
+            Ticked=true
+            Step=0.1
+            ShowThumbTooltip=true
+            Color="teal"
+            @bind-FirstValue=MinMagnitude
+            @bind-SecondValue=MaxMagnitude>
+        </FomRangeSlider>
+        <span style="color:white">Hours since occurance</span>
+        <FomRangeSlider
+            OnValueChanged="FilterChanged"
+            Min=MinHours
+            Max=MaxHours
+            Start=MinHours
+            End=MaxHours
+            Ticked=true
+            Color="blue"
+            BottomAlignedLabels=true
+            ShowThumbTooltip=true
+            RestrictedLabels=RestrictedHoursLabels
+            @bind-FirstValue=MinHours
+            @bind-SecondValue=MaxHours
+            Smooth=false 
+            Labeled=true>
+        </FomRangeSlider>
+        <span style="color:white">Depth range</span>
+        <FomRangeSlider
+            OnValueChanged="FilterChanged"
+            Min=MinDepth
+            Max=MaxDepth
+            Start=_userSetMinDepth
+            End=_userSetMaxDepth
+            BottomAlignedLabels=true
+            Ticked=true
+            Color="violet"
+            ShowThumbTooltip=true
+            @bind-FirstValue=_userSetMinDepth
+            @bind-SecondValue=_userSetMaxDepth
+            Smooth=false 
+            Labeled=true>
+        </FomRangeSlider>
     </div>
 </div>
 
@@ -70,7 +71,7 @@
 </SemButton>
 
 <div style="color:white !important;z-index:99;position:absolute;bottom:5px;left:10px">
-    <h5 style="margin-bottom:-25px">Meteorological data supplied by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes">Icelandic Meteorological Office</a>. This website is a web technology demonstration and does not guarantee that data is displayed accurately</h5>
+    <h5 style="margin-bottom:-25px">Meteorological data supplied by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes">Icelandic Meteorological Office</a>. This site is a web technology demonstration and does not guarantee that data is displayed accurately</h5>
     <h3>Showing earthquakes in Iceland that are between @MinMagnitude and @MaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(MinHours == 0 ? $"in the last {@MaxHours} hours" : $"between {@MinHours} and {MaxHours} hours ago")</h3>
 </div>
 
@@ -88,6 +89,11 @@
     [Parameter]
     public double MaxDepth { get; set; }
 
+    [Parameter]
+    public int[] RestrictedMagnitudeLabels { get; set; } = new int[0] { };
+    [Parameter]
+    public int[] RestrictedHoursLabels { get; set; } = new int[0] { };
+
     private double _userSetMinMagnitude,
                 _userSetMaxMagnitude,
                 _userSetMaxDepth,
@@ -104,6 +110,7 @@
         var hoursSince = Quakes.Select(e => (DateTime.Now - e.TimeStamp).TotalHours);
         var depths  = Quakes.Select(e => e.Depth);
 
+        // dynamic query test, implement properly later
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("maxdepth", out var maxdepth))
             _userSetMaxDepth = Convert.ToInt32(maxdepth);
         else
@@ -113,6 +120,19 @@
         MaxMagnitude = Convert.ToInt32(Math.Ceiling(magnitudes.Max()));
         MinHours = Convert.ToInt32(Math.Floor(hoursSince.Min()));
         MaxHours = Convert.ToInt32(Math.Floor(hoursSince.Max()));
+
+        if (MaxHours - MinHours > 15)
+        {
+            var step = Convert.ToInt32(MaxHours % 15);
+            RestrictedHoursLabels = new int[step];
+
+            for (int i = 1; i < RestrictedHoursLabels.Length - 1; i++)
+            {
+                RestrictedHoursLabels[i] = i * step;
+            }
+            RestrictedHoursLabels[RestrictedHoursLabels.Length - 1] = Convert.ToInt32(MaxHours);
+        }
+
         MinDepth = Convert.ToInt32(depths.Min());
         MaxDepth = Convert.ToInt32(depths.Max());
     }

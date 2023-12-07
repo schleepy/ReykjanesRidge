@@ -9,6 +9,7 @@
     smooth,
     showThumbTooltip,
     color,
+    restrictedLabels,
 ) {
     $('#' + id)
         .slider({
@@ -19,9 +20,10 @@
             step: step,
             smooth: smooth,
             showThumbTooltip: showThumbTooltip,
+            restrictedLabels: restrictedLabels,
             tooltipConfig: {
-                position: 'top center',
-                variation: 'small visible ' + color
+                position: 'bottom center',
+                variation: 'tiny visible ' + color
             },
             onChange: function (range, firstVal, secondVal) {
                 dotNetRef.invokeMethodAsync('valueChanged', range, firstVal, secondVal);
@@ -30,5 +32,5 @@
 }
 
 window.fomRangeSlider = {
-    init: (dotNetRef, id, min, max, start, end, step, smooth, showThumbTooltip, color) => { fomRangeSliderInit(dotNetRef, id, min, max, start, end, step, smooth, showThumbTooltip, color) },
+    init: (dotNetRef, id, min, max, start, end, step, smooth, showThumbTooltip, color, restrictedLabels) => { fomRangeSliderInit(dotNetRef, id, min, max, start, end, step, smooth, showThumbTooltip, color, restrictedLabels) },
 };
