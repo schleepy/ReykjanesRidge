@@ -169,10 +169,33 @@ function GCStoCartesian(lat, lon, radius = earthRadius) {
 }
 
 window.EarthquakeVisualizerJS = {
-    load: () => { loadScene(); },
-    addEarthquake: (earthquake) => { AddEarthquake(earthquake); },
-    setCameraPos: (x, y, z) => { setCameraPosition(x, y, z) }
+    load:             () => { loadScene(); },
+    addEarthquake:    (earthquake) => { AddEarthquake(earthquake); },
+    //removeEarthquake: (id) => { removeEarthquake(id); },
+    showEarthquake:   (id) => { showEarthquake(id); },
+    hideEarthquake:   (id) => { hideEarthquake(id); },
+    setCameraPos:     (x, y, z) => { setCameraPosition(x, y, z) },
+    toggleSidebar:    () => { toggleSidebar(); }
 };
+
+function hideEarthquake(id)
+{
+    console.log("hiding " + id)
+    var object = scene.getObjectByName(id, true);
+    console.log(object);
+}
+
+function showEarthquake(id)
+{
+    console.log("showing " + id)
+    scene.getObjectByName(id, true).visible = true;
+}
+
+function toggleSidebar() {
+    //$('.ui.sidebar').sidebar('setting', 'dimPage', false);
+    $('.ui.sidebar')
+        .sidebar('toggle');
+}
 
 function Debug() {
     if (camera != null) {

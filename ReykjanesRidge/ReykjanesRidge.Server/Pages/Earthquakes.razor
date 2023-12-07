@@ -1,6 +1,5 @@
 ﻿@page "/earthquakes"
 @using ReykjanesRidge.Server.Components
-
 @using ReykjanesRidge.Models.Dtos;
 @using ReykjanesRidge.Services.Implementations;
 @inject IJSRuntime JSRuntime
@@ -8,22 +7,31 @@
 
 <div id="threejscontainer" style="width: 100%; height: 100%;"></div>
 
-<FomRangeSlider OnValueChanged="ValueChanged" Smooth=false Labeled=true Ticked=true></FomRangeSlider>
-<p role="status">Current count: @currentCount</p>
+<!--<FomRangeSlider OnValueChanged="ValueChanged" Smooth=false Labeled=true Ticked=true></FomRangeSlider>-->
 
-<SemButton OnClick="IncrementCount">CLICK THIS PIECE OF SHIT</SemButton>
+<div class="ui sidebar right inverted vertical menu" style="background-color:gray">
+    <FomRangeSlider OnValueChanged="ValueChanged" Smooth=false Labeled=true></FomRangeSlider>
+</div>
+
+<SemButton OnClick="ToggleSidebar" Style="position:absolute;top:100px;right:20px;z-index:99">Filter</SemButton>
 
 @code {
-    private int currentCount = 0;
-
-    private async void IncrementCount()
-    {
-        currentCount++;
-    }
+    public List<EarthquakeDto> Quakes { get; set; }
 
     public async void ValueChanged(FomRangeSliderEventArgs e)
     {
-        Console.WriteLine("range changed" + e.FirstValue);
+        var visibleQuakes = Quakes.Where(q => q.Magnitude > e.FirstValue && q.Magnitude < e.SecondValue);
+        var hiddenQuakes = Quakes.Except(visibleQuakes);
+
+        foreach (var earthquake in visibleQuakes)
+        {
+            await ShowEarthquake(earthquake.ID);
+        }
+
+        foreach (var earthquake in hiddenQuakes)
+        {
+            await HideEarthquake(earthquake.ID);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -36,9 +44,9 @@
             await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load");
         }
 
-        var earthquakes = await EarthquakeService.GetAll();
+        Quakes = await EarthquakeService.GetAll();
 
-        foreach (var earthquake in earthquakes)
+        foreach (var earthquake in Quakes)
         {
             await AddEarthquake(earthquake);
         }
@@ -49,5 +57,20 @@
     public async Task AddEarthquake(EarthquakeDto earthquakeDto)
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addEarthquake", earthquakeDto);
+    }
+
+    public async Task HideEarthquake(Guid Id)
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.hideEarthquake", Id);
+    }
+
+    public async Task ShowEarthquake(Guid Id)
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.showEarthquake", Id);
+    }
+
+    public async Task ToggleSidebar()
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.toggleSidebar");
     }
 }

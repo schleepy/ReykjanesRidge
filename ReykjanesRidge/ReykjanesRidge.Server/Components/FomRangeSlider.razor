@@ -1,4 +1,5 @@
-﻿@inject IJSRuntime JSRuntime;
+﻿@inherits ComponentBase
+@inject IJSRuntime JSRuntime;
 
 <div id="@Id" class="ui @(Labeled ? "labeled" : "") @(Ticked ? "ticked" : "") range slider"></div>
 

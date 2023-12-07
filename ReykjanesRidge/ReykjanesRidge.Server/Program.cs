@@ -58,8 +58,6 @@ namespace ReykjanesRidge.Server
 
             app.UseStaticFiles();
 
-            app.UseStaticFiles();
-
             app.UseRouting();
 
             app.MapBlazorHub();
