@@ -6,6 +6,7 @@ import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
 var container = document.getElementById('threejscontainer');
 var clock, controls;
 var camera, scene, renderer, mixer, animations, iceland;
+var earthquakes = [];
 
 $(document).ready(function () {
 
@@ -129,9 +130,9 @@ function AddEarthquake(earthquake) {
     var magnitude = earthquake["magnitude"];
     var magnitudeColor = new THREE.Color(magnitudeColors[Math.floor(magnitude)]);
 
-    let geometry = new THREE.SphereGeometry(magnitude/2, 32, 10);
-    let material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    let sphere = new THREE.Mesh(geometry, material);
+    var geometry = new THREE.SphereGeometry(magnitude/2, 32, 10);
+    var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    var sphere = new THREE.Mesh(geometry, material);
 
     // Get X and Y position from longitude and latitude
     var position = GCStoCartesian(earthquake["latitude"], earthquake["longitude"]);
@@ -148,11 +149,12 @@ function AddEarthquake(earthquake) {
     sphere.material.emissive.set(magnitudeColor);
     sphere.material.transparent = true;
     sphere.material.opacity = 0.6;
-    sphere.name = earthquake["ID"];
 
     iceland.add(sphere);
 
-    console.log("added earthquake" + magnitude);
+    earthquakes[earthquake["id"]] = sphere.id;
+
+    console.log("added earthquake" + sphere.name);
 }
 
 /*
@@ -180,15 +182,16 @@ window.EarthquakeVisualizerJS = {
 
 function hideEarthquake(id)
 {
-    console.log("hiding " + id)
-    var object = scene.getObjectByName(id, true);
-    console.log(object);
+    var object = scene.getObjectById(earthquakes[id], true);
+    object.visible = false;
+    console.log("hiding " + id);
 }
 
 function showEarthquake(id)
 {
-    console.log("showing " + id)
-    scene.getObjectByName(id, true).visible = true;
+    var object = scene.getObjectById(earthquakes[id], true);
+    object.visible = true;
+    console.log("showing " + id);
 }
 
 function toggleSidebar() {

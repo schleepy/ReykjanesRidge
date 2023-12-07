@@ -9,29 +9,75 @@
 
 <!--<FomRangeSlider OnValueChanged="ValueChanged" Smooth=false Labeled=true Ticked=true></FomRangeSlider>-->
 
-<div class="ui sidebar right inverted vertical menu" style="background-color:gray">
-    <FomRangeSlider OnValueChanged="ValueChanged" Smooth=false Labeled=true></FomRangeSlider>
+<div class="ui sidebar right inverted vertical menu" style="background-color:none">
+    <FomRangeSlider 
+        OnValueChanged="FilterChanged"
+        Smooth=false 
+        Labeled=true
+        Min=MinMagnitude
+        Max=MaxMagnitude
+        @bind-FirstValue=MinMagnitude
+        @bind-SecondValue=MaxMagnitude>
+    </FomRangeSlider>
+    <FomRangeSlider
+        OnValueChanged="FilterChanged"
+        Min=MinHours
+        Max=MaxHours
+        Start=MinHours
+        End=MaxHours
+        @bind-FirstValue=MinHours
+        @bind-SecondValue=MaxHours
+        Smooth=false 
+        Labeled=true>
+    </FomRangeSlider>
+    <FomRangeSlider
+        OnValueChanged="FilterChanged"
+        Min=MinDepth
+        Max=MaxDepth
+        Start=MinDepth
+        End=MaxDepth
+        @bind-FirstValue=MinDepth
+        @bind-SecondValue=MaxDepth
+        Smooth=false 
+        Labeled=true>
+    </FomRangeSlider>
 </div>
 
-<SemButton OnClick="ToggleSidebar" Style="position:absolute;top:100px;right:20px;z-index:99">Filter</SemButton>
+<SemButton 
+    OnClick="ToggleSidebar" 
+    Class="vertical-center" 
+    Style="right:10px;z-index:99" 
+    Icon=Icon.Cog>
+</SemButton>
 
 @code {
+    [Parameter]
+    public int MinMagnitude { get; set; }
+    [Parameter]
+    public int MaxMagnitude { get; set; }
+    [Parameter]
+    public int MinHours { get; set; }
+    [Parameter]
+    public int MaxHours { get; set; }
+    [Parameter]
+    public int MinDepth { get; set; }
+    [Parameter]
+    public int MaxDepth { get; set; }
+
     public List<EarthquakeDto> Quakes { get; set; }
 
-    public async void ValueChanged(FomRangeSliderEventArgs e)
+    protected override async Task OnInitializedAsync()
     {
-        var visibleQuakes = Quakes.Where(q => q.Magnitude > e.FirstValue && q.Magnitude < e.SecondValue);
-        var hiddenQuakes = Quakes.Except(visibleQuakes);
-
-        foreach (var earthquake in visibleQuakes)
-        {
-            await ShowEarthquake(earthquake.ID);
-        }
-
-        foreach (var earthquake in hiddenQuakes)
-        {
-            await HideEarthquake(earthquake.ID);
-        }
+        Quakes = await EarthquakeService.GetAll(); // Get all earthquakes
+        var magnitudes = Quakes.Select(e => e.Magnitude);
+        var hoursSince = Quakes.Select(e => (DateTime.Now - e.TimeStamp).TotalHours);
+        var depths = Quakes.Select(e => e.Depth);
+        MinMagnitude = Convert.ToInt32(Math.Floor(magnitudes.Min()));
+        MaxMagnitude = Convert.ToInt32(Math.Ceiling(magnitudes.Max()));
+        MinHours = Convert.ToInt32(Math.Floor(hoursSince.Min()));
+        MaxHours = Convert.ToInt32(Math.Floor(hoursSince.Max()));
+        MinDepth = Convert.ToInt32(depths.Min());
+        MaxDepth = Convert.ToInt32(depths.Max());
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -42,18 +88,15 @@
                 "import", "./Pages/Earthquakes.razor.js");
 
             await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load");
+
+            foreach (var earthquake in Quakes)
+            {
+                await AddEarthquake(earthquake);
+            }
         }
-
-        Quakes = await EarthquakeService.GetAll();
-
-        foreach (var earthquake in Quakes)
-        {
-            await AddEarthquake(earthquake);
-        }
-
-        //await AddEarthquake(await EarthquakeService.GetOne());
     }
 
+    # region threejs interoperability
     public async Task AddEarthquake(EarthquakeDto earthquakeDto)
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addEarthquake", earthquakeDto);
@@ -72,5 +115,30 @@
     public async Task ToggleSidebar()
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.toggleSidebar");
+    }
+    #endregion
+
+    public async void FilterChanged()
+    {
+        // THIS IS FUCKING HOT DUDE, C# 9.0 DOING IT
+        var visibleQuakes = from quake in Quakes
+                        let hoursSince = (DateTime.Now - quake.TimeStamp).TotalHours
+                        where hoursSince >= MinHours && hoursSince <= MaxHours &&
+                        quake.Magnitude >= MinMagnitude && quake.Magnitude <= MaxMagnitude &&
+                        quake.Depth >= MinDepth && quake.Depth <= MaxDepth
+                        select quake;
+
+        // Filter out all other quakes
+        var hiddenQuakes = Quakes.Except(visibleQuakes);
+
+        foreach (var earthquake in visibleQuakes)
+        {
+            await ShowEarthquake(earthquake.ID);
+        }
+
+        foreach (var earthquake in hiddenQuakes)
+        {
+            await HideEarthquake(earthquake.ID);
+        }
     }
 }

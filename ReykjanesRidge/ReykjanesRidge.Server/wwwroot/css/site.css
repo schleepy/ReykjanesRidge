@@ -8,3 +8,9 @@ html {
 body {
 	margin: 0px;
 }
+
+.vertical-center {
+	margin: 0;
+	position: absolute;
+	top: 50%;
+}
