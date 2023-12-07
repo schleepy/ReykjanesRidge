@@ -2,8 +2,8 @@
 {
     public class FomRangeSliderEventArgs : EventArgs
     {
-        public int Range { get; set; }
-        public int FirstValue { get; set; }
-        public int SecondValue { get; set; }
+        public double Range { get; set; }
+        public double FirstValue { get; set; }
+        public double SecondValue { get; set; }
     }
 }

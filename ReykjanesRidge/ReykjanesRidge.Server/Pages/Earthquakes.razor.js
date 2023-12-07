@@ -67,16 +67,20 @@ function render() {
 
 function loadFBX(path, context) {
     const fbxLoader = new FBXLoader()
-    fbxLoader.load(
-        '/models/iceland_flat_svg.fbx',
-        (object) => {
+    fbxLoader.load('/models/iceland_flat_svg.fbx', function (object) {
             object.scale.set(.4, .4, .4)
-            //object.position.setY(-1)
             object.position.setX(36);
             object.position.setZ(-20);
             object.rotation.y = (-22.7 * (Math.PI / 180))
-            let material = new THREE.MeshStandardMaterial({ color: 0xffffff });
             context.add(object)
+            /*object.traverse(function (child) {
+                if (child.material) {
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: 0xff0000,
+                        opacity: 0.3
+                    });
+                }
+            })*/
         }
     );
 }
@@ -122,7 +126,7 @@ function loadScene() {
     animate();
 }
 
-function AddEarthquake(earthquake) {
+function AddEarthquake(earthquake, visible = true) {
 
     if (iceland == null)
         return
@@ -149,6 +153,7 @@ function AddEarthquake(earthquake) {
     sphere.material.emissive.set(magnitudeColor);
     sphere.material.transparent = true;
     sphere.material.opacity = 0.6;
+    sphere.visible = visible;
 
     iceland.add(sphere);
 
@@ -172,7 +177,7 @@ function GCStoCartesian(lat, lon, radius = earthRadius) {
 
 window.EarthquakeVisualizerJS = {
     load:             () => { loadScene(); },
-    addEarthquake:    (earthquake) => { AddEarthquake(earthquake); },
+    addEarthquake:    (earthquake, visible) => { AddEarthquake(earthquake, visible); },
     //removeEarthquake: (id) => { removeEarthquake(id); },
     showEarthquake:   (id) => { showEarthquake(id); },
     hideEarthquake:   (id) => { hideEarthquake(id); },
@@ -193,9 +198,9 @@ function showEarthquake(id)
     object.visible = true;
     console.log("showing " + id);
 }
-
+    
 function toggleSidebar() {
-    //$('.ui.sidebar').sidebar('setting', 'dimPage', false);
+    $(".ui.sidebar").sidebar({transition: 'overlay'});
     $('.ui.sidebar')
         .sidebar('toggle');
 }

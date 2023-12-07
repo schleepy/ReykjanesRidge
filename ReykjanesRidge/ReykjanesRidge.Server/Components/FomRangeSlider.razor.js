@@ -6,7 +6,9 @@
     start,
     end,
     step,
-    smooth
+    smooth,
+    showThumbTooltip,
+    color,
 ) {
     $('#' + id)
         .slider({
@@ -16,6 +18,11 @@
             end: end,
             step: step,
             smooth: smooth,
+            showThumbTooltip: showThumbTooltip,
+            tooltipConfig: {
+                position: 'top center',
+                variation: 'small visible ' + color
+            },
             onChange: function (range, firstVal, secondVal) {
                 dotNetRef.invokeMethodAsync('valueChanged', range, firstVal, secondVal);
             }
@@ -23,5 +30,5 @@
 }
 
 window.fomRangeSlider = {
-    init: (dotNetRef, id, min, max, start, end, step, smooth) => { fomRangeSliderInit(dotNetRef, id, min, max, start, end, step, smooth) },
+    init: (dotNetRef, id, min, max, start, end, step, smooth, showThumbTooltip, color) => { fomRangeSliderInit(dotNetRef, id, min, max, start, end, step, smooth, showThumbTooltip, color) },
 };

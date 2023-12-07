@@ -1,3 +1,7 @@
 ﻿::deep li {
     color:white !important;
 }
+
+::deep #controls {
+    width:500px !important;
+}

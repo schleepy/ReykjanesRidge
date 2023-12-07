@@ -2,76 +2,113 @@
 @using ReykjanesRidge.Server.Components
 @using ReykjanesRidge.Models.Dtos;
 @using ReykjanesRidge.Services.Implementations;
+@using Microsoft.AspNetCore.WebUtilities;
 @inject IJSRuntime JSRuntime
 @inject EarthquakeService EarthquakeService
+@inject NavigationManager NavManager
 
-<div id="threejscontainer" style="width: 100%; height: 100%;"></div>
+<div id="threejscontainer"></div>
 
-<!--<FomRangeSlider OnValueChanged="ValueChanged" Smooth=false Labeled=true Ticked=true></FomRangeSlider>-->
-
-<div class="ui sidebar right inverted vertical menu" style="background-color:none">
+<div id="controls" class="ui sidebar right inverted vertical menu" style="width:400px;background-color:rgba(255, 0, 0, 0);overflow:hidden">
+    <div style="padding:20px">
+    <SemLabel>Magnitude range</SemLabel>
     <FomRangeSlider 
         OnValueChanged="FilterChanged"
-        Smooth=false 
+        Smooth=true 
         Labeled=true
+        BottomAlignedLabels=true
         Min=MinMagnitude
         Max=MaxMagnitude
+        Ticked=true
+        Step=0.1
+        ShowThumbTooltip=true
+        Color="teal"
         @bind-FirstValue=MinMagnitude
         @bind-SecondValue=MaxMagnitude>
     </FomRangeSlider>
+    <SemLabel>Hours since occurance</SemLabel>
     <FomRangeSlider
         OnValueChanged="FilterChanged"
         Min=MinHours
         Max=MaxHours
         Start=MinHours
         End=MaxHours
+        Ticked=true
+        Color="blue"
+        BottomAlignedLabels=true
+        ShowThumbTooltip=true
         @bind-FirstValue=MinHours
         @bind-SecondValue=MaxHours
         Smooth=false 
         Labeled=true>
     </FomRangeSlider>
+    <SemLabel>Depth range</SemLabel>
     <FomRangeSlider
         OnValueChanged="FilterChanged"
         Min=MinDepth
         Max=MaxDepth
-        Start=MinDepth
-        End=MaxDepth
-        @bind-FirstValue=MinDepth
-        @bind-SecondValue=MaxDepth
+        Start=_userSetMinDepth
+        End=_userSetMaxDepth
+        BottomAlignedLabels=true
+        Ticked=true
+        Color="violet"
+        ShowThumbTooltip=true
+        @bind-FirstValue=_userSetMinDepth
+        @bind-SecondValue=_userSetMaxDepth
         Smooth=false 
         Labeled=true>
     </FomRangeSlider>
+    </div>
 </div>
 
 <SemButton 
     OnClick="ToggleSidebar" 
     Class="vertical-center" 
-    Style="right:10px;z-index:99" 
-    Icon=Icon.Cog>
+    Style="right:10px;z-index:2" 
+    Icon=Icon.Cog
+    Tooltip="Filter">
 </SemButton>
+
+<div style="color:white !important;z-index:99;position:absolute;bottom:5px;left:10px">
+    <h5 style="margin-bottom:-25px">Meteorological data supplied by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes">Icelandic Meteorological Office</a>. This website is a web technology demonstration and does not guarantee that data is displayed accurately</h5>
+    <h3>Showing earthquakes in Iceland that are between @MinMagnitude and @MaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(MinHours == 0 ? $"in the last {@MaxHours} hours" : $"between {@MinHours} and {MaxHours} hours ago")</h3>
+</div>
 
 @code {
     [Parameter]
-    public int MinMagnitude { get; set; }
+    public double MinMagnitude { get; set; }
     [Parameter]
-    public int MaxMagnitude { get; set; }
+    public double MaxMagnitude { get; set; }
     [Parameter]
-    public int MinHours { get; set; }
+    public double MinHours { get; set; }
     [Parameter]
-    public int MaxHours { get; set; }
+    public double MaxHours { get; set; }
     [Parameter]
-    public int MinDepth { get; set; }
+    public double MinDepth { get; set; }
     [Parameter]
-    public int MaxDepth { get; set; }
+    public double MaxDepth { get; set; }
+
+    private double _userSetMinMagnitude,
+                _userSetMaxMagnitude,
+                _userSetMaxDepth,
+                _userSetMinDepth;
 
     public List<EarthquakeDto> Quakes { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         Quakes = await EarthquakeService.GetAll(); // Get all earthquakes
+
         var magnitudes = Quakes.Select(e => e.Magnitude);
         var hoursSince = Quakes.Select(e => (DateTime.Now - e.TimeStamp).TotalHours);
-        var depths = Quakes.Select(e => e.Depth);
+        var depths  = Quakes.Select(e => e.Depth);
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("maxdepth", out var maxdepth))
+            _userSetMaxDepth = Convert.ToInt32(maxdepth);
+        else
+            _userSetMaxDepth = MaxDepth = Convert.ToInt32(depths.Max());
+
         MinMagnitude = Convert.ToInt32(Math.Floor(magnitudes.Min()));
         MaxMagnitude = Convert.ToInt32(Math.Ceiling(magnitudes.Max()));
         MinHours = Convert.ToInt32(Math.Floor(hoursSince.Min()));
@@ -89,17 +126,25 @@
 
             await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load");
 
+            var visibleQuakes = GetVisibleQuakes();
             foreach (var earthquake in Quakes)
             {
-                await AddEarthquake(earthquake);
+                if (visibleQuakes.Contains(earthquake))
+                {
+                    await AddEarthquake(earthquake);
+                } 
+                else
+                {
+                    await AddEarthquake(earthquake, false);   
+                }
             }
         }
     }
 
     # region threejs interoperability
-    public async Task AddEarthquake(EarthquakeDto earthquakeDto)
+    public async Task AddEarthquake(EarthquakeDto earthquakeDto, bool visible = true)
     {
-        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addEarthquake", earthquakeDto);
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addEarthquake", earthquakeDto, visible);
     }
 
     public async Task HideEarthquake(Guid Id)
@@ -121,12 +166,7 @@
     public async void FilterChanged()
     {
         // THIS IS FUCKING HOT DUDE, C# 9.0 DOING IT
-        var visibleQuakes = from quake in Quakes
-                        let hoursSince = (DateTime.Now - quake.TimeStamp).TotalHours
-                        where hoursSince >= MinHours && hoursSince <= MaxHours &&
-                        quake.Magnitude >= MinMagnitude && quake.Magnitude <= MaxMagnitude &&
-                        quake.Depth >= MinDepth && quake.Depth <= MaxDepth
-                        select quake;
+        var visibleQuakes = GetVisibleQuakes();
 
         // Filter out all other quakes
         var hiddenQuakes = Quakes.Except(visibleQuakes);
@@ -140,5 +180,14 @@
         {
             await HideEarthquake(earthquake.ID);
         }
+
+        StateHasChanged();
     }
+
+    private IEnumerable<EarthquakeDto> GetVisibleQuakes() => from quake in Quakes
+                                                             let hoursSince = (DateTime.Now - quake.TimeStamp).TotalHours
+                                                             where hoursSince >= MinHours && hoursSince <= MaxHours &&
+                                                             quake.Magnitude >= MinMagnitude && quake.Magnitude <= MaxMagnitude &&
+                                                             quake.Depth >= _userSetMinDepth && quake.Depth <= _userSetMaxDepth
+                                                             select quake;
 }

@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ReykjanesRidge.Models.Settings;
 using ReykjanesRidge.Repository;
-using ReykjanesRidge.Server.Data;
 using ReykjanesRidge.Services.Implementations;
 using AutoMapper;
 using Microsoft.AspNetCore.StaticFiles;

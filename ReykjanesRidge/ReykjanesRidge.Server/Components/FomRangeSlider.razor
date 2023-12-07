@@ -1,44 +1,48 @@
 ﻿@inherits ComponentBase
 @inject IJSRuntime JSRuntime;
 
-<div id="@Id" class="ui @(Labeled ? "labeled" : "") @(Ticked ? "ticked" : "") range slider"></div>
+<div id="@Id" class="ui @(Color ?? Color) @(BottomAlignedLabels ? "bottom aligned" : "") @(Labeled ? "labeled" : "") @(Ticked ? "ticked" : "") range slider"></div>
 
 @code {
 
     [Parameter]
     public string? Id { get; set; }
     [Parameter]
-    public int Min { get; set; } = 0;
+    public double Min { get; set; } = 0;
     [Parameter]
-    public int Max { get; set; } = 10;
+    public double Max { get; set; } = 10;
     [Parameter]
-    public int Start { get; set; } = 0;
+    public double Start { get; set; } = 0;
     [Parameter]
-    public int End { get; set; } = 10;
+    public double End { get; set; } = 10;
     [Parameter]
-    public int Step { get; set; } = 1;
+    public double Step { get; set; } = 1;
     [Parameter]
     public bool Smooth { get; set; } = true;
     [Parameter]
     public bool Labeled { get; set; } = false;
     [Parameter]
     public bool Ticked { get; set; } = false;
+    [Parameter]
+    public bool BottomAlignedLabels { get; set; } = false;
+    [Parameter]
+    public bool ShowThumbTooltip { get; set; } = false;
+    [Parameter]
+    public string Color { get; set; } = "black";
 
     [Parameter]
-    public int Range { get; set; }
+    public double Range { get; set; }
     [Parameter]
-    public int FirstValue { get; set; }
+    public double FirstValue { get; set; }
     [Parameter]
-    public int SecondValue { get; set; }
+    public double SecondValue { get; set; }
 
     [Parameter]
-    public EventCallback<int> OnValueChanged { get; set; }
+    public EventCallback<double> OnValueChanged { get; set; }
     [Parameter]
-    public EventCallback<int> FirstValueChanged { get; set; }
+    public EventCallback<double> FirstValueChanged { get; set; }
     [Parameter]
-    public EventCallback<int> SecondValueChanged { get; set; }
-
-
+    public EventCallback<double> SecondValueChanged { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,12 +61,12 @@
 
             var dotNetReference = DotNetObjectReference.Create(this);
 
-            await JSRuntime.InvokeVoidAsync("fomRangeSlider.init", dotNetReference, Id, Min, Max, Start, End, Step, Smooth);
+            await JSRuntime.InvokeVoidAsync("fomRangeSlider.init", dotNetReference, Id, Min, Max, Start, End, Step, Smooth, ShowThumbTooltip, Color);
         }
     }
 
     [JSInvokable("valueChanged")]
-    public async void ValueChanged(int range, int firstVal, int secondVal)
+    public async void ValueChanged(double range, double firstVal, double secondVal)
     {
         if (FirstValue != firstVal)
         {
