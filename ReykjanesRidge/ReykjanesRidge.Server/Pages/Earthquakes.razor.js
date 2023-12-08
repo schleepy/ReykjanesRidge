@@ -1,7 +1,7 @@
 ﻿import * as THREE from '/js/threejs/three.module.js';
-import { ColladaLoader } from '/js/threejs/loaders/ColladaLoader.js';
 import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
+import { CSS2DRenderer } from '/js/threejs/renderers/CSS2DRenderer.js';
 
 var container = document.getElementById('threejscontainer');
 var clock, controls;
