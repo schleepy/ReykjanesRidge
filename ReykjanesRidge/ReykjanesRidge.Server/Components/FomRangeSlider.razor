@@ -31,6 +31,8 @@
     public string Color { get; set; } = "black";
     [Parameter]
     public int[] RestrictedLabels { get; set; } = new int[0] { };
+    [Parameter]
+    public int MaxLabels { get; set; } = 20;
 
     [Parameter]
     public decimal Range { get; set; }
@@ -51,6 +53,18 @@
         if (string.IsNullOrEmpty(Id))
         {
             Id = Guid.NewGuid().ToString();
+        }
+
+        if (Max - Min >= MaxLabels)
+        {
+            decimal increment = Math.Ceiling((Max - Min) / MaxLabels);
+            RestrictedLabels = new int[MaxLabels];
+            RestrictedLabels[0] = Convert.ToInt32(Min);
+            RestrictedLabels[RestrictedLabels.Length - 1] = Convert.ToInt32(Max);
+            for (int i = 1; i < RestrictedLabels.Length-1; i++)
+            {
+                RestrictedLabels[i] = Convert.ToInt32(i * increment);
+            }
         }
     }
 
