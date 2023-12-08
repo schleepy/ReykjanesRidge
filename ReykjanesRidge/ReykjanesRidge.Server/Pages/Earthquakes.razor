@@ -20,7 +20,7 @@
             Min=MinMagnitude
             Max=MaxMagnitude
             Ticked=true
-            Step=0.1
+            Step=0.1m
             ShowThumbTooltip=true
             Color="teal"
             @bind-FirstValue=MinMagnitude
@@ -37,7 +37,6 @@
             Color="blue"
             BottomAlignedLabels=true
             ShowThumbTooltip=true
-            RestrictedLabels=RestrictedHoursLabels
             @bind-FirstValue=MinHours
             @bind-SecondValue=MaxHours
             Smooth=false 
@@ -77,24 +76,24 @@
 
 @code {
     [Parameter]
-    public double MinMagnitude { get; set; }
+    public decimal MinMagnitude { get; set; }
     [Parameter]
-    public double MaxMagnitude { get; set; }
+    public decimal MaxMagnitude { get; set; }
     [Parameter]
-    public double MinHours { get; set; }
+    public decimal MinHours { get; set; }
     [Parameter]
-    public double MaxHours { get; set; }
+    public decimal MaxHours { get; set; }
     [Parameter]
-    public double MinDepth { get; set; }
+    public decimal MinDepth { get; set; }
     [Parameter]
-    public double MaxDepth { get; set; }
+    public decimal MaxDepth { get; set; }
 
     [Parameter]
     public int[] RestrictedMagnitudeLabels { get; set; } = new int[0] { };
     [Parameter]
     public int[] RestrictedHoursLabels { get; set; } = new int[0] { };
 
-    private double _userSetMinMagnitude,
+    private decimal _userSetMinMagnitude,
                 _userSetMaxMagnitude,
                 _userSetMaxDepth,
                 _userSetMinDepth;
@@ -205,7 +204,7 @@
     }
 
     private IEnumerable<EarthquakeDto> GetVisibleQuakes() => from quake in Quakes
-                                                             let hoursSince = (DateTime.Now - quake.TimeStamp).TotalHours
+                                                             let hoursSince = Convert.ToDecimal((DateTime.Now - quake.TimeStamp).TotalHours)
                                                              where hoursSince >= MinHours && hoursSince <= MaxHours &&
                                                              quake.Magnitude >= MinMagnitude && quake.Magnitude <= MaxMagnitude &&
                                                              quake.Depth >= _userSetMinDepth && quake.Depth <= _userSetMaxDepth

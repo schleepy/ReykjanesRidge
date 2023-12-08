@@ -11,11 +11,11 @@ namespace ReykjanesRidge.Models.Dtos
         public Guid ID { get; set; }
         public string AlternativeID { get; set; }
         public DateTime TimeStamp { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public double Depth { get; set; }
-        public double Magnitude { get; set; }
-        public double Quality { get; set; }
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
+        public decimal Depth { get; set; }
+        public decimal Magnitude { get; set; }
+        public decimal Quality { get; set; }
         public string FriendlyLocation { get; set; }
     }
 }

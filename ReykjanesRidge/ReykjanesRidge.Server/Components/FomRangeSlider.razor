@@ -8,15 +8,15 @@
     [Parameter]
     public string? Id { get; set; }
     [Parameter]
-    public double Min { get; set; } = 0;
+    public decimal Min { get; set; } = 0;
     [Parameter]
-    public double Max { get; set; } = 10;
+    public decimal Max { get; set; } = 10;
     [Parameter]
-    public double Start { get; set; } = 0;
+    public decimal Start { get; set; } = 0;
     [Parameter]
-    public double End { get; set; } = 10;
+    public decimal End { get; set; } = 10;
     [Parameter]
-    public double Step { get; set; } = 1;
+    public decimal Step { get; set; } = 1;
     [Parameter]
     public bool Smooth { get; set; } = true;
     [Parameter]
@@ -33,18 +33,18 @@
     public int[] RestrictedLabels { get; set; } = new int[0] { };
 
     [Parameter]
-    public double Range { get; set; }
+    public decimal Range { get; set; }
     [Parameter]
-    public double FirstValue { get; set; }
+    public decimal FirstValue { get; set; }
     [Parameter]
-    public double SecondValue { get; set; }
+    public decimal SecondValue { get; set; }
 
     [Parameter]
-    public EventCallback<double> OnValueChanged { get; set; }
+    public EventCallback<decimal> OnValueChanged { get; set; }
     [Parameter]
-    public EventCallback<double> FirstValueChanged { get; set; }
+    public EventCallback<decimal> FirstValueChanged { get; set; }
     [Parameter]
-    public EventCallback<double> SecondValueChanged { get; set; }
+    public EventCallback<decimal> SecondValueChanged { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,7 +68,7 @@
     }
 
     [JSInvokable("valueChanged")]
-    public async void ValueChanged(double range, double firstVal, double secondVal)
+    public async void ValueChanged(decimal range, decimal firstVal, decimal secondVal)
     {
         if (FirstValue != firstVal)
         {
