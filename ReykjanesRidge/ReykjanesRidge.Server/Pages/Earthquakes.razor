@@ -19,28 +19,30 @@
             BottomAlignedLabels=true
             Min=MinMagnitude
             Max=MaxMagnitude
+            Start=_userSetMinMagnitude
+            End=_userSetMaxMagnitude
             Ticked=true
-            Step=0.1
+            Step=0.1m
             ShowThumbTooltip=true
             Color="teal"
-            @bind-FirstValue=MinMagnitude
-            @bind-SecondValue=MaxMagnitude>
+            @bind-FirstValue=_userSetMinMagnitude
+            @bind-SecondValue=_userSetMaxMagnitude>
         </FomRangeSlider>
         <span style="color:white">Hours since occurance</span>
         <FomRangeSlider
             OnValueChanged="FilterChanged"
             Min=MinHours
             Max=MaxHours
-            Start=MinHours
-            End=MaxHours
+            Start=_userSetMinHours
+            End=_userSetMaxHours
             Ticked=true
             Color="blue"
             BottomAlignedLabels=true
             ShowThumbTooltip=true
-            RestrictedLabels=RestrictedHoursLabels
-            @bind-FirstValue=MinHours
-            @bind-SecondValue=MaxHours
-            Smooth=false 
+            MaxLabels=10
+            @bind-FirstValue=_userSetMinHours
+            @bind-SecondValue=_userSetMaxHours
+            Smooth=false
             Labeled=true>
         </FomRangeSlider>
         <span style="color:white">Depth range</span>
@@ -53,6 +55,7 @@
             BottomAlignedLabels=true
             Ticked=true
             Color="violet"
+            MaxLabels=10
             ShowThumbTooltip=true
             @bind-FirstValue=_userSetMinDepth
             @bind-SecondValue=_userSetMaxDepth
@@ -77,27 +80,24 @@
 
 @code {
     [Parameter]
-    public double MinMagnitude { get; set; }
+    public decimal MinMagnitude { get; set; }
     [Parameter]
-    public double MaxMagnitude { get; set; }
+    public decimal MaxMagnitude { get; set; }
     [Parameter]
-    public double MinHours { get; set; }
+    public decimal MinHours { get; set; }
     [Parameter]
-    public double MaxHours { get; set; }
+    public decimal MaxHours { get; set; }
     [Parameter]
-    public double MinDepth { get; set; }
+    public decimal MinDepth { get; set; }
     [Parameter]
-    public double MaxDepth { get; set; }
+    public decimal MaxDepth { get; set; }
 
-    [Parameter]
-    public int[] RestrictedMagnitudeLabels { get; set; } = new int[0] { };
-    [Parameter]
-    public int[] RestrictedHoursLabels { get; set; } = new int[0] { };
-
-    private double _userSetMinMagnitude,
-                _userSetMaxMagnitude,
-                _userSetMaxDepth,
-                _userSetMinDepth;
+    private decimal _userSetMinMagnitude,
+                    _userSetMaxMagnitude,
+                    _userSetMaxDepth,
+                    _userSetMinDepth,
+                    _userSetMinHours,
+                    _userSetMaxHours;
 
     public List<EarthquakeDto> Quakes { get; set; }
 
@@ -110,31 +110,27 @@
         var hoursSince = Quakes.Select(e => (DateTime.Now - e.TimeStamp).TotalHours);
         var depths  = Quakes.Select(e => e.Depth);
 
-        // dynamic query test, implement properly later
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("maxdepth", out var maxdepth))
-            _userSetMaxDepth = Convert.ToInt32(maxdepth);
-        else
-            _userSetMaxDepth = MaxDepth = Convert.ToInt32(depths.Max());
-
         MinMagnitude = Convert.ToInt32(Math.Floor(magnitudes.Min()));
         MaxMagnitude = Convert.ToInt32(Math.Ceiling(magnitudes.Max()));
         MinHours = Convert.ToInt32(Math.Floor(hoursSince.Min()));
         MaxHours = Convert.ToInt32(Math.Floor(hoursSince.Max()));
-
-        if (MaxHours - MinHours > 15)
-        {
-            var step = Convert.ToInt32(MaxHours % 15);
-            RestrictedHoursLabels = new int[step];
-
-            for (int i = 1; i < RestrictedHoursLabels.Length - 1; i++)
-            {
-                RestrictedHoursLabels[i] = i * step;
-            }
-            RestrictedHoursLabels[RestrictedHoursLabels.Length - 1] = Convert.ToInt32(MaxHours);
-        }
-
         MinDepth = Convert.ToInt32(depths.Min());
         MaxDepth = Convert.ToInt32(depths.Max());
+
+        // dynamic query test, implement properly later
+        #region parse
+        // magnitude
+        _userSetMinMagnitude = ParseQueryArg("minmagnitude", MinMagnitude, true);
+        _userSetMaxMagnitude = ParseQueryArg("maxmagnitude", MaxMagnitude, false);
+
+        // hours
+        _userSetMinHours = ParseQueryArg("minhours", MinHours, true);
+        _userSetMaxHours = ParseQueryArg("maxhours", MaxHours, false);
+
+        // depth
+        _userSetMinDepth = ParseQueryArg("mindepth", MinDepth, true);
+        _userSetMaxDepth = ParseQueryArg("maxdepth", MaxDepth, false);
+        #endregion parse queries
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -159,6 +155,17 @@
                 }
             }
         }
+    }
+
+    protected decimal ParseQueryArg(string argument, decimal defaultValue, bool notSmaller)
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue(argument, out var data))
+            if (notSmaller ? defaultValue <= Convert.ToInt32(data) : defaultValue >= Convert.ToInt32(data))
+                return Convert.ToInt32(data);
+
+        return defaultValue;
     }
 
     # region threejs interoperability
@@ -204,10 +211,13 @@
         StateHasChanged();
     }
 
-    private IEnumerable<EarthquakeDto> GetVisibleQuakes() => from quake in Quakes
-                                                             let hoursSince = (DateTime.Now - quake.TimeStamp).TotalHours
-                                                             where hoursSince >= MinHours && hoursSince <= MaxHours &&
-                                                             quake.Magnitude >= MinMagnitude && quake.Magnitude <= MaxMagnitude &&
-                                                             quake.Depth >= _userSetMinDepth && quake.Depth <= _userSetMaxDepth
-                                                             select quake;
+    private IEnumerable<EarthquakeDto> GetVisibleQuakes()
+    {
+        return from quake in Quakes
+               let hoursSince = Convert.ToDecimal((DateTime.Now - quake.TimeStamp).TotalHours)
+               where hoursSince >= _userSetMinHours && hoursSince <= _userSetMaxHours &&
+               quake.Magnitude >= _userSetMinMagnitude && quake.Magnitude <= _userSetMaxMagnitude &&
+               quake.Depth >= _userSetMinDepth && quake.Depth <= _userSetMaxDepth
+               select quake;
+    }
 }

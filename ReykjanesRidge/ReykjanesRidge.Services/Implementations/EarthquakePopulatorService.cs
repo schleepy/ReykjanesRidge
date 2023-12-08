@@ -47,11 +47,11 @@ namespace ReykjanesRidge.Services.Implementations
                 EarthquakeDto obj = new EarthquakeDto
                 {
                     TimeStamp = metOfficeEarthquake.t,
-                    Latitude = Convert.ToDouble(metOfficeEarthquake.lat),
-                    Longitude = Convert.ToDouble(metOfficeEarthquake.lon),
-                    Depth = Convert.ToDouble(metOfficeEarthquake.dep),
-                    Magnitude = Convert.ToDouble(metOfficeEarthquake.s),
-                    Quality = Convert.ToDouble(metOfficeEarthquake.q),
+                    Latitude = Convert.ToDecimal(metOfficeEarthquake.lat),
+                    Longitude = Convert.ToDecimal(metOfficeEarthquake.lon),
+                    Depth = Convert.ToDecimal(metOfficeEarthquake.dep),
+                    Magnitude = Convert.ToDecimal(metOfficeEarthquake.s),
+                    Quality = Convert.ToDecimal(metOfficeEarthquake.q),
                     FriendlyLocation = $"{metOfficeEarthquake.dL} km {metOfficeEarthquake.dD.Trim()} of {metOfficeEarthquake.dR}"
                 };
 

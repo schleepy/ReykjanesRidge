@@ -1,7 +1,7 @@
 ﻿import * as THREE from '/js/threejs/three.module.js';
-import { ColladaLoader } from '/js/threejs/loaders/ColladaLoader.js';
 import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
+import { CSS2DRenderer } from '/js/threejs/renderers/CSS2DRenderer.js';
 
 var container = document.getElementById('threejscontainer');
 var clock, controls;
@@ -145,21 +145,58 @@ function AddEarthquake(earthquake, visible = true) {
     position.x -= 2530; 
     position.z -= 900;
 
-    sphere.position.copy(position);
-
-    sphere.position.setY(-(earthquake["depth"])); // Set depth
-
     sphere.material.color.set(magnitudeColor);
     sphere.material.emissive.set(magnitudeColor);
     sphere.material.transparent = true;
     sphere.material.opacity = 0.6;
-    sphere.visible = visible;
 
-    iceland.add(sphere);
+    var earthquakeGroup = new THREE.Group();
 
-    earthquakes[earthquake["id"]] = sphere.id;
+    earthquakeGroup.position.copy(position);
+    earthquakeGroup.position.setY(-(earthquake["depth"])); // Set depth
+    earthquakeGroup.add(sphere);
+    earthquakeGroup.visible = visible;
+
+    // draw line reaching the surface from the epicenter
+    var points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, earthquake["depth"]+0.5, 0)];
+    var line = DrawLine(points);
+    line.material.color.set(magnitudeColor);
+    line.material.emissive.set(magnitudeColor);
+    line.material.transparent = true;
+    line.material.opacity = 0.2;
+    earthquakeGroup.add(line);
+
+    // draw circle on surface
+    var circle = DrawCircle(earthquake["magnitude"]/2);
+    circle.rotation.x = -(Math.PI / 2);
+    circle.position.setY(earthquake["depth"] + (Math.random() * 0.5));
+    circle.material.color.set(magnitudeColor);
+    circle.material.emissive.set(magnitudeColor);
+    circle.material.transparent = true;
+    circle.material.opacity = 0.2;
+    earthquakeGroup.add(circle);
+
+    iceland.add(earthquakeGroup);
+
+    earthquakes[earthquake["id"]] = earthquakeGroup.id;
 
     console.log("added earthquake" + sphere.name);
+}
+
+function DrawLine(points)
+{
+    var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    var geometry = new THREE.BufferGeometry().setFromPoints(points);
+    var line = new THREE.Line(geometry, material);
+    return line;
+}
+
+function DrawCircle(radius, segments = 32)
+{
+    var geometry = new THREE.CircleGeometry(radius, 32);
+    var material = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+    var circle = new THREE.Mesh(geometry, material);
+    return circle;
 }
 
 /*
