@@ -7,6 +7,8 @@
 @inject EarthquakeService EarthquakeService
 @inject NavigationManager NavManager
 
+<PageTitle>Earthquakes in Iceland</PageTitle>
+
 <div id="threejscontainer"></div>
 
 <div id="controls" class="ui sidebar right inverted vertical menu" style="width:400px;background-color:rgba(255, 0, 0, 0);overflow:hidden">
@@ -74,8 +76,8 @@
 </SemButton>
 
 <div style="color:white !important;z-index:99;position:absolute;bottom:5px;left:10px">
-    <h5 style="margin-bottom:-25px">Meteorological data supplied by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes">Icelandic Meteorological Office</a>. This site is a web technology demonstration and does not guarantee that data is displayed accurately</h5>
-    <h3>Showing earthquakes in Iceland that are between @MinMagnitude and @MaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(MinHours == 0 ? $"in the last {@MaxHours} hours" : $"between {@MinHours} and {MaxHours} hours ago")</h3>
+    <h6 style="margin-bottom:-25px">Meteorological data supplied by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes">Icelandic Meteorological Office</a>. This site is a web technology demonstration and does not guarantee that data is displayed accurately, you can contact me via email for any questions regarding the project at <a href="mailto:jgh@tskoli.is">jgh@tskoli.is</a></h6>
+    <h3>Showing earthquakes in Iceland that are between @_userSetMinMagnitude and @_userSetMaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(_userSetMinHours == 0 ? $"in the last {_userSetMaxHours} hours" : $"between {_userSetMinHours} and {_userSetMaxHours} hours ago")</h3>
 </div>
 
 @code {
@@ -190,7 +192,7 @@
     }
     #endregion
 
-    public async void FilterChanged()
+    public async Task FilterChanged()
     {
         // THIS IS FUCKING HOT DUDE, C# 9.0 DOING IT
         var visibleQuakes = GetVisibleQuakes();

@@ -82,7 +82,7 @@
     }
 
     [JSInvokable("valueChanged")]
-    public async void ValueChanged(decimal range, decimal firstVal, decimal secondVal)
+    public async Task ValueChanged(decimal range, decimal firstVal, decimal secondVal)
     {
         if (FirstValue != firstVal)
         {

@@ -2,10 +2,11 @@
 import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
 import { CSS2DRenderer } from '/js/threejs/renderers/CSS2DRenderer.js';
+import { Interaction } from '/js/threejs/interaction/src/index.js'; // Add on from from jasonChen1982 on github, thank you!
 
 var container = document.getElementById('threejscontainer');
 var clock, controls;
-var camera, scene, renderer, mixer, animations, iceland;
+var camera, scene, renderer, mixer, animations, iceland, interaction;
 var earthquakes = [];
 
 $(document).ready(function () {
@@ -73,14 +74,15 @@ function loadFBX(path, context) {
             object.position.setZ(-20);
             object.rotation.y = (-22.7 * (Math.PI / 180))
             context.add(object)
-            /*object.traverse(function (child) {
+            object.traverse(function (child) {
                 if (child.material) {
                     child.material = new THREE.MeshStandardMaterial({
-                        color: 0xff0000,
-                        opacity: 0.3
+                        color: 0x262626,
+                        emissive: 0x262626,
+                        opacity: 0.1
                     });
                 }
-            })*/
+            })
         }
     );
 }
@@ -98,6 +100,10 @@ function loadScene() {
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // interaction
+    interaction = new Interaction(renderer, scene, camera);
+
     container.appendChild(renderer.domElement);
 
     iceland = new THREE.Group();
@@ -177,6 +183,11 @@ function AddEarthquake(earthquake, visible = true) {
     earthquakeGroup.add(circle);
 
     iceland.add(earthquakeGroup);
+
+    // Interaction
+    /*earthquakeGroup.on('click', function(ev) {
+        console.log("clicked an earthquake");
+    });*/
 
     earthquakes[earthquake["id"]] = earthquakeGroup.id;
 
