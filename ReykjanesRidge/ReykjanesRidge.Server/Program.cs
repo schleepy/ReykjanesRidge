@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ReykjanesRidge.Models.Settings;
@@ -21,6 +23,7 @@ namespace ReykjanesRidge.Server
             builder.Services.AddServerSideBlazor();
             builder.Services.AddScoped<EarthquakeService>();
             builder.Services.AddSingleton<EarthquakeNotifierService>();
+            builder.Services.AddLocalization();
 
             var connectionString = builder.Configuration.GetConnectionString("ApplicationContext");
             builder.Services.AddDbContext<ApplicationContext>(options =>
@@ -45,6 +48,17 @@ namespace ReykjanesRidge.Server
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            var supportedCultures = new[]{
+            new CultureInfo("en-US")
+};
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture("en-US"),
+                SupportedCultures = supportedCultures,
+                FallBackToParentCultures = false
+            });
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
 
             app.UseHttpsRedirection();
 
