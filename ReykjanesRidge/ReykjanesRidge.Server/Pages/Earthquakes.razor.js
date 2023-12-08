@@ -21,7 +21,6 @@ $(document).ready(function () {
 
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix()
-        console.log("reeesiiizing");
     });
 });
 
@@ -185,13 +184,57 @@ function AddEarthquake(earthquake, visible = true) {
     iceland.add(earthquakeGroup);
 
     // Interaction
-    earthquakeGroup.on('click', function(ev) {
-        console.log("clicked an earthquake");
+    earthquakeGroup.cursor = 'pointer';
+
+    // hover over
+    earthquakeGroup.on('mouseover', function (ev) {
+
+        var target = ev.data.target;
+        var children = ev.data.target.children;
+
+        // get original color of children
+        target.userData["originalColor"] = children[0].material.color;
+        target.userData["originalScale"] = target.scale;
+
+        // set hover color on all children
+        /*for (var i = 0; i < children.length; i++) {
+            console.log("setting color on children");
+            children[i].material.color.set("rgb(255, 0, 0)");
+            children[i].material.emissive.set("rgb(255, 0, 0)");
+        };*/
+
+        // scale up
+        target.scale.setX(1.1);
+        target.scale.setY(1.1);
+        target.scale.setZ(1.1);
+    });
+
+    // hover out
+    earthquakeGroup.on('mouseout', function (ev) {
+
+        var target = ev.data.target;
+        var children = ev.data.target.children;
+
+        // set hover color on all children to their original;
+        /*for (var i = 0; i < children.length; i++) {
+            console.log("setting original color on children");
+            children[i].material.color = (target.userData["originalColor"]);
+            children[i].material.emissive = (target.userData["originalColor"]);
+        };*/
+
+        // scale to original
+        target.scale.setX(1);
+        target.scale.setY(1);
+        target.scale.setZ(1);
+    });
+
+    // click on earthquake group
+    earthquakeGroup.on('click', function (ev) {
+        // focus target
+        controls.target.copy(ev.data.target.position);
     });
 
     earthquakes[earthquake["id"]] = earthquakeGroup.id;
-
-    console.log("added earthquake" + sphere.name);
 }
 
 function DrawLine(points)
@@ -237,14 +280,12 @@ function hideEarthquake(id)
 {
     var object = scene.getObjectById(earthquakes[id], true);
     object.visible = false;
-    console.log("hiding " + id);
 }
 
 function showEarthquake(id)
 {
     var object = scene.getObjectById(earthquakes[id], true);
     object.visible = true;
-    console.log("showing " + id);
 }
     
 function toggleSidebar() {
@@ -270,5 +311,3 @@ function setCameraPosition(x, y, z)
     camera.position.y = y;
     camera.position.z = z;
 }
-
-Debug();
