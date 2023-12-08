@@ -185,9 +185,9 @@ function AddEarthquake(earthquake, visible = true) {
     iceland.add(earthquakeGroup);
 
     // Interaction
-    /*earthquakeGroup.on('click', function(ev) {
+    earthquakeGroup.on('click', function(ev) {
         console.log("clicked an earthquake");
-    });*/
+    });
 
     earthquakes[earthquake["id"]] = earthquakeGroup.id;
 
