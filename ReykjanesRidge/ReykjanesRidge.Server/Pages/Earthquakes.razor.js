@@ -24,18 +24,6 @@ $(document).ready(function () {
     });
 });
 
-/*document.addEventListener('resize', onContainerResize);
-
-function onContainerResize() {
-    var box = container.getBoundingClientRect();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix()
-    console.log("reeesiiizing");
-    // optional animate/renderloop call put here for render-on-changes
-}*/
-
 const earthRadius = 6371; // radius of earth in kilometers, needed for GCS to cartesian conversion
 const cameraStartingPos = new THREE.Vector3(357, 388, 113);
 const cameraStartingFocusPoint = new THREE.Vector3(30, -50, -20);
@@ -162,8 +150,10 @@ function AddEarthquake(earthquake, visible = true) {
     earthquakeGroup.add(sphere);
     earthquakeGroup.visible = visible;
 
+    var surface = earthquake["depth"] + (Math.random() * 0.5);
+
     // draw line reaching the surface from the epicenter
-    var points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, earthquake["depth"]+0.5, 0)];
+    var points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, surface, 0)];
     var line = DrawLine(points);
     line.material.color.set(magnitudeColor);
     line.material.emissive.set(magnitudeColor);
@@ -174,7 +164,7 @@ function AddEarthquake(earthquake, visible = true) {
     // draw circle on surface
     var circle = DrawCircle(earthquake["magnitude"]/2);
     circle.rotation.x = -(Math.PI / 2);
-    circle.position.setY(earthquake["depth"] + (Math.random() * 0.5));
+    circle.position.setY(surface);
     circle.material.color.set(magnitudeColor);
     circle.material.emissive.set(magnitudeColor);
     circle.material.transparent = true;
