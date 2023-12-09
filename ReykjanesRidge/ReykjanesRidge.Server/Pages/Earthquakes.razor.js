@@ -2,7 +2,7 @@
 import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
 import { CSS2DRenderer } from '/js/threejs/renderers/CSS2DRenderer.js';
-import { Interaction } from '/js/threejs/interaction/src/index.js'; // Add on from from jasonChen1982 on github, thank you!
+import { Interaction } from '/js/threejs/interaction/src/three.interaction.js'; // Add on from from jasonChen1982 on github, thank you!
 
 var container = document.getElementById('threejscontainer');
 var clock, controls;
@@ -119,7 +119,14 @@ function loadScene() {
     animate();
 }
 
-function AddEarthquake(earthquake, visible = true) {
+function AddEarthquake(earthquake, visible = true)
+{
+    if (Array.isArray(earthquake)) { // recursively add earthquakes if multiple are being added by a single websocket call
+        for (var i = 0; i < earthquake.length; i++) {
+            AddEarthquake(earthquake[i], visible);
+        }
+        return;
+    }
 
     if (iceland == null)
         return
@@ -150,7 +157,7 @@ function AddEarthquake(earthquake, visible = true) {
     earthquakeGroup.add(sphere);
     earthquakeGroup.visible = visible;
 
-    var surface = earthquake["depth"] + (Math.random() * 0.5);
+    var surface = earthquake["depth"] + (Math.random() * 0.3);
 
     // draw line reaching the surface from the epicenter
     var points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, surface, 0)];
@@ -177,46 +184,10 @@ function AddEarthquake(earthquake, visible = true) {
     earthquakeGroup.cursor = 'pointer';
 
     // hover over
-    earthquakeGroup.on('mouseover', function (ev) {
-
-        var target = ev.data.target;
-        var children = ev.data.target.children;
-
-        // get original color of children
-        target.userData["originalColor"] = children[0].material.color;
-        target.userData["originalScale"] = target.scale;
-
-        // set hover color on all children
-        /*for (var i = 0; i < children.length; i++) {
-            console.log("setting color on children");
-            children[i].material.color.set("rgb(255, 0, 0)");
-            children[i].material.emissive.set("rgb(255, 0, 0)");
-        };*/
-
-        // scale up
-        target.scale.setX(1.1);
-        target.scale.setY(1.1);
-        target.scale.setZ(1.1);
-    });
+    earthquakeGroup.on('mouseover', (ev) => FocusEarthquake(ev));
 
     // hover out
-    earthquakeGroup.on('mouseout', function (ev) {
-
-        var target = ev.data.target;
-        var children = ev.data.target.children;
-
-        // set hover color on all children to their original;
-        /*for (var i = 0; i < children.length; i++) {
-            console.log("setting original color on children");
-            children[i].material.color = (target.userData["originalColor"]);
-            children[i].material.emissive = (target.userData["originalColor"]);
-        };*/
-
-        // scale to original
-        target.scale.setX(1);
-        target.scale.setY(1);
-        target.scale.setZ(1);
-    });
+    earthquakeGroup.on('mouseout', (ev) => UnfocusEarthquake(ev));
 
     // click on earthquake group
     earthquakeGroup.on('click', function (ev) {
@@ -225,6 +196,42 @@ function AddEarthquake(earthquake, visible = true) {
     });
 
     earthquakes[earthquake["id"]] = earthquakeGroup.id;
+}
+
+function FocusEarthquake(event)
+{
+    var target = event.data.target;
+
+    // get original color of children
+    target.userData["originalColor"] = target.children[0].material.color;
+    target.userData["originalScale"] = target.scale;
+
+    // set hover color on all children
+    /*for (var i = 0; i < children.length; i++) {
+        console.log("setting color on children");
+        children[i].material.color.set("rgb(255, 0, 0)");
+        children[i].material.emissive.set("rgb(255, 0, 0)");
+    };*/
+
+    // scale up
+    target.scale.setX(1.1);
+    target.scale.setY(1.1);
+    target.scale.setZ(1.1);
+}
+function UnfocusEarthquake(event) {
+    var target = event.data.target;
+
+    // set hover color on all children to their original;
+    /*for (var i = 0; i < children.length; i++) {
+        console.log("setting original color on children");
+        children[i].material.color = (target.userData["originalColor"]);
+        children[i].material.emissive = (target.userData["originalColor"]);
+    };*/
+
+    // scale to original
+    target.scale.setX(1);
+    target.scale.setY(1);
+    target.scale.setZ(1);
 }
 
 function DrawLine(points)
@@ -260,22 +267,40 @@ window.EarthquakeVisualizerJS = {
     load:             () => { loadScene(); },
     addEarthquake:    (earthquake, visible) => { AddEarthquake(earthquake, visible); },
     //removeEarthquake: (id) => { removeEarthquake(id); },
-    showEarthquake:   (id) => { showEarthquake(id); },
-    hideEarthquake:   (id) => { hideEarthquake(id); },
+    showEarthquake:   (ids) => { showEarthquake(ids); },
+    hideEarthquake:   (ids) => { hideEarthquake(ids); },
     setCameraPos:     (x, y, z) => { setCameraPosition(x, y, z) },
     toggleSidebar:    () => { toggleSidebar(); }
 };
 
-function hideEarthquake(id)
+function hideEarthquake(ids)
 {
-    var object = scene.getObjectById(earthquakes[id], true);
-    object.visible = false;
+    if (Array.isArray(ids)) {
+        for (var i = 0; i < ids.length; i++) {
+            var id = ids[i];
+            var object = scene.getObjectById(earthquakes[id], true);
+            object.visible = false;
+        }
+    }
+    else { // get single and hide it
+        var object = scene.getObjectById(earthquakes[ids], true);
+        object.visible = false;
+    }
 }
 
-function showEarthquake(id)
+function showEarthquake(ids)
 {
-    var object = scene.getObjectById(earthquakes[id], true);
-    object.visible = true;
+    if (Array.isArray(ids)) {
+        for (var i = 0; i < ids.length; i++) {
+            var id = ids[i];
+            var object = scene.getObjectById(earthquakes[id], true);
+            object.visible = true;
+        }
+    }
+    else { // get single and hide it
+        var object = scene.getObjectById(earthquakes[ids], true);
+        object.visible = true;
+    }
 }
     
 function toggleSidebar() {

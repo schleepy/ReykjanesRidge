@@ -1,10 +1,12 @@
 ﻿@page "/earthquakes"
 @using ReykjanesRidge.Server.Components
+@using ReykjanesRidge.Models;
 @using ReykjanesRidge.Models.Dtos;
 @using ReykjanesRidge.Services.Implementations;
 @using Microsoft.AspNetCore.WebUtilities;
 @inject IJSRuntime JSRuntime
 @inject EarthquakeService EarthquakeService
+@inject EarthquakeNotifierService EarthquakeNotifierService
 @inject NavigationManager NavManager
 
 <PageTitle>Earthquakes in Iceland</PageTitle>
@@ -108,9 +110,15 @@
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         Quakes = await EarthquakeService.GetAll(); // Get all earthquakes
 
+        await ParseQuakes();
+        await ParseUserSettings();
+    }
+
+    protected async Task ParseQuakes()
+    {
         var magnitudes = Quakes.Select(e => e.Magnitude);
         var hoursSince = Quakes.Select(e => (DateTime.Now - e.TimeStamp).TotalHours);
-        var depths  = Quakes.Select(e => e.Depth);
+        var depths = Quakes.Select(e => e.Depth);
 
         MinMagnitude = Convert.ToInt32(Math.Floor(magnitudes.Min()));
         MaxMagnitude = Convert.ToInt32(Math.Ceiling(magnitudes.Max()));
@@ -118,7 +126,10 @@
         MaxHours = Convert.ToInt32(Math.Floor(hoursSince.Max()));
         MinDepth = Convert.ToInt32(depths.Min());
         MaxDepth = Convert.ToInt32(depths.Max());
+    }
 
+    protected async Task ParseUserSettings()
+    {
         // dynamic query test, implement properly later
         #region parse
         // magnitude
@@ -145,17 +156,12 @@
             await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load");
 
             var visibleQuakes = GetVisibleQuakes();
-            foreach (var earthquake in Quakes)
-            {
-                if (visibleQuakes.Contains(earthquake))
-                {
-                    await AddEarthquake(earthquake);
-                } 
-                else
-                {
-                    await AddEarthquake(earthquake, false);   
-                }
-            }
+            var hiddenQuakes = Quakes.Except(visibleQuakes);
+            await AddEarthquake(visibleQuakes);
+            await AddEarthquake(hiddenQuakes, false);
+
+            // event handling
+            // EarthquakeNotifierService.OnEarthquakeAdded += EarthquakeAdded;
         }
     }
 
@@ -170,10 +176,24 @@
         return defaultValue;
     }
 
+    public async void EarthquakeAdded(EarthquakeEventArgs e)
+    {
+        // notify ui
+        Quakes.Add(e.Earthquake); // add to general store
+        await ParseQuakes(); // rerun calculations
+        await AddEarthquake(e.Earthquake); // add to js;
+                                           //await FilterChanged(); // run a filter change;
+    }
+
     # region threejs interoperability
     public async Task AddEarthquake(EarthquakeDto earthquakeDto, bool visible = true)
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addEarthquake", earthquakeDto, visible);
+    }
+
+    public async Task AddEarthquake(IEnumerable<EarthquakeDto> earthquakeDtos, bool visible = true)
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addEarthquake", earthquakeDtos, visible);
     }
 
     public async Task HideEarthquake(Guid Id)
@@ -181,9 +201,19 @@
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.hideEarthquake", Id);
     }
 
+    public async Task HideEarthquake(IEnumerable<Guid> Ids)
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.hideEarthquake", Ids);
+    }
+
     public async Task ShowEarthquake(Guid Id)
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.showEarthquake", Id);
+    }
+
+    public async Task ShowEarthquake(IEnumerable<Guid> Ids)
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.showEarthquake", Ids);
     }
 
     public async Task ToggleSidebar()
@@ -194,28 +224,26 @@
 
     public async Task FilterChanged()
     {
+        var quakes = Quakes;
+
         // THIS IS FUCKING HOT DUDE, C# 9.0 DOING IT
         var visibleQuakes = GetVisibleQuakes();
 
         // Filter out all other quakes
-        var hiddenQuakes = Quakes.Except(visibleQuakes);
+        var hiddenQuakes = quakes.Except(visibleQuakes);
 
-        foreach (var earthquake in visibleQuakes)
-        {
-            await ShowEarthquake(earthquake.ID);
-        }
+        await ShowEarthquake(visibleQuakes.Select(q => q.ID));
 
-        foreach (var earthquake in hiddenQuakes)
-        {
-            await HideEarthquake(earthquake.ID);
-        }
+        await HideEarthquake(hiddenQuakes.Select(q => q.ID));
 
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private IEnumerable<EarthquakeDto> GetVisibleQuakes()
     {
-        return from quake in Quakes
+        var quakes = Quakes;
+
+        return from quake in quakes
                let hoursSince = Convert.ToDecimal((DateTime.Now - quake.TimeStamp).TotalHours)
                where hoursSince >= _userSetMinHours && hoursSince <= _userSetMaxHours &&
                quake.Magnitude >= _userSetMinMagnitude && quake.Magnitude <= _userSetMaxMagnitude &&
