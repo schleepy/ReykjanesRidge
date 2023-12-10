@@ -1,12 +1,14 @@
-﻿@page "/earthquakes"
+﻿@page "/"
 @using ReykjanesRidge.Server.Components
 @using ReykjanesRidge.Models;
 @using ReykjanesRidge.Models.Dtos;
+@using ReykjanesRidge.Models.Settings;
 @using ReykjanesRidge.Services.Implementations;
 @using Microsoft.AspNetCore.WebUtilities;
 @inject IJSRuntime JSRuntime
 @inject EarthquakeService EarthquakeService
 @inject EarthquakeNotifierService EarthquakeNotifierService
+@inject EarthquakeVisualizerSettings EarthquakeVisualizerSettings
 @inject NavigationManager NavManager
 
 <PageTitle>Earthquakes in Iceland</PageTitle>
@@ -153,12 +155,17 @@
             await JSRuntime.InvokeAsync<IJSObjectReference>(
                 "import", "./Pages/Earthquakes.razor.js");
 
+            // Load initial scene
             await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load");
 
+            // Render quakes
             var visibleQuakes = GetVisibleQuakes();
             var hiddenQuakes = Quakes.Except(visibleQuakes);
             await AddEarthquake(visibleQuakes);
             await AddEarthquake(hiddenQuakes, false);
+
+            // Render location tags
+            await AddLocation(EarthquakeVisualizerSettings.Locations);
 
             // event handling
             // EarthquakeNotifierService.OnEarthquakeAdded += EarthquakeAdded;
@@ -219,6 +226,16 @@
     public async Task ToggleSidebar()
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.toggleSidebar");
+    }
+
+    public async Task AddLocation(Location location)
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addLocation", location);
+    }
+
+    public async Task AddLocation(IEnumerable<Location> location)
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addLocation", location);
     }
     #endregion
 

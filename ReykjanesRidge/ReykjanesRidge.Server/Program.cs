@@ -33,6 +33,9 @@ namespace ReykjanesRidge.Server
             builder.Services.Configure<EarthquakePopulatorSettings>(builder.Configuration.GetSection("EarthquakePopulator"));
             builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<EarthquakePopulatorSettings>>().Value);
 
+            builder.Services.Configure<EarthquakeVisualizerSettings>(builder.Configuration.GetSection("EarthquakeVisualizer"));
+            builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<EarthquakeVisualizerSettings>>().Value);
+
             // AutoMapper
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

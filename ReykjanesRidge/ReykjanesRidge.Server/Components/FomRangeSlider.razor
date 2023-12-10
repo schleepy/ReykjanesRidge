@@ -1,7 +1,7 @@
 ﻿@inherits ComponentBase
 @inject IJSRuntime JSRuntime;
 
-<div id="@Id" class="ui @(Color ?? Color) @(BottomAlignedLabels ? "bottom aligned" : "") @(Labeled ? "labeled" : "") @(Ticked ? "ticked" : "") range slider"></div>
+<div id="@Id" class="ui @(Color ?? Color) @(BottomAlignedLabels ? "bottom aligned" : "") @(Labeled ? "labeled" : "") @(Ticked ? "ticked" : "") range slider" style="@Style"></div>
 
 @code {
 
@@ -33,6 +33,8 @@
     public int[] RestrictedLabels { get; set; } = new int[0] { };
     [Parameter]
     public int MaxLabels { get; set; } = 20;
+    [Parameter]
+    public string Style { get; set; }
 
     [Parameter]
     public decimal Range { get; set; }

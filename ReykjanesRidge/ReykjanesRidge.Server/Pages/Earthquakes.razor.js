@@ -1,12 +1,12 @@
 ﻿import * as THREE from '/js/threejs/three.module.js';
 import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
-import { CSS2DRenderer } from '/js/threejs/renderers/CSS2DRenderer.js';
+import { CSS2DRenderer, CSS2DObject } from '/js/threejs/renderers/CSS2DRenderer.js';
 import { Interaction } from '/js/threejs/interaction/src/three.interaction.js'; // Add on from from jasonChen1982 on github, thank you!
 
 var container = document.getElementById('threejscontainer');
 var clock, controls;
-var camera, scene, renderer, mixer, animations, iceland, interaction;
+var camera, scene, renderer, labelRenderer, mixer, animations, iceland, interaction;
 var earthquakes = [];
 
 $(document).ready(function () {
@@ -18,6 +18,7 @@ $(document).ready(function () {
 
         var box = container.getBoundingClientRect();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
 
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix()
@@ -37,6 +38,7 @@ const magnitudeColors = [ // colors based on magnitude, magnitude is floored and
 function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
 }
 
 function render() {
@@ -45,6 +47,7 @@ function render() {
         mixer.update(delta);
     }
     renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
 }
 
 /**
@@ -88,10 +91,16 @@ function loadScene() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
 
+    labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0px';
+
     // interaction
-    interaction = new Interaction(renderer, scene, camera);
+    interaction = new Interaction(labelRenderer, scene, camera);
 
     container.appendChild(renderer.domElement);
+    container.appendChild(labelRenderer.domElement);
 
     iceland = new THREE.Group();
 
@@ -109,7 +118,7 @@ function loadScene() {
     scene.add(camera);
     camera.add(pointLight);
 
-    controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, labelRenderer.domElement);
     controls.screenSpacePanning = false;
     controls.minDistance = 5;
     controls.maxDistance = 3000;
@@ -141,10 +150,6 @@ function AddEarthquake(earthquake, visible = true)
     // Get X and Y position from longitude and latitude
     var position = GCStoCartesian(earthquake["latitude"], earthquake["longitude"]);
 
-    // Offset, fix this later
-    position.x -= 2530; 
-    position.z -= 900;
-
     sphere.material.color.set(magnitudeColor);
     sphere.material.emissive.set(magnitudeColor);
     sphere.material.transparent = true;
@@ -175,8 +180,9 @@ function AddEarthquake(earthquake, visible = true)
     circle.material.color.set(magnitudeColor);
     circle.material.emissive.set(magnitudeColor);
     circle.material.transparent = true;
-    circle.material.opacity = 0.2;
+    circle.material.opacity = 0.5;
     earthquakeGroup.add(circle);
+    earthquakeGroup.layers.set(1);
 
     iceland.add(earthquakeGroup);
 
@@ -196,6 +202,30 @@ function AddEarthquake(earthquake, visible = true)
     });
 
     earthquakes[earthquake["id"]] = earthquakeGroup.id;
+}
+function AddLocation(location)
+{
+    if (Array.isArray(location)) {
+        for (var i = 0; i < location.length; i++) {
+            AddLocation(location[i]);
+        }
+        return;
+    }
+
+    var locationTagDiv = document.createElement('div');
+    locationTagDiv.textContent = location["name"];
+    locationTagDiv.style.backgroundColor = 'transparent';
+    locationTagDiv.style.color = 'rgb(255, 255, 255)';
+    locationTagDiv.style.fontSize = (location["fontSize"]).toString() + "px";
+
+    var position = GCStoCartesian(location["latitude"], location["longitude"]);
+
+    var locationTagLabel = new CSS2DObject(locationTagDiv);
+    locationTagLabel.position.copy(position);
+    locationTagLabel.position.setY(3.5);
+    locationTagLabel.center.set(0, 0);
+    locationTagLabel.layers.set(0);
+    iceland.add(locationTagLabel);
 }
 
 function FocusEarthquake(event)
@@ -256,9 +286,9 @@ function DrawCircle(radius, segments = 32)
 function GCStoCartesian(lat, lon, radius = earthRadius) {
     var phi = (90 - lat) * (Math.PI / 180),
         theta = (lon + 180) * (Math.PI / 180),
-        x = -((radius) * Math.sin(phi) * Math.cos(theta)),
-        z = ((radius) * Math.sin(phi) * Math.sin(theta)),
-        y = ((radius) * Math.cos(phi));
+        x = (-((radius) * Math.sin(phi) * Math.cos(theta))) - 2530,
+        z = ((radius) * Math.sin(phi) * Math.sin(theta)) - 900,
+        y = 0;
 
     return new THREE.Vector3(x, y, z);
 }
@@ -266,6 +296,7 @@ function GCStoCartesian(lat, lon, radius = earthRadius) {
 window.EarthquakeVisualizerJS = {
     load:             () => { loadScene(); },
     addEarthquake:    (earthquake, visible) => { AddEarthquake(earthquake, visible); },
+    addLocation:      (location) => { AddLocation(location); },
     //removeEarthquake: (id) => { removeEarthquake(id); },
     showEarthquake:   (ids) => { showEarthquake(ids); },
     hideEarthquake:   (ids) => { hideEarthquake(ids); },
