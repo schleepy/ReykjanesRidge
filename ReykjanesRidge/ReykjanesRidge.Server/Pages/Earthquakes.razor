@@ -103,7 +103,9 @@
                     _userSetMaxDepth,
                     _userSetMinDepth,
                     _userSetMinHours,
-                    _userSetMaxHours;
+                    _userSetMaxHours,
+                    _minDays,
+                    _maxDays;
 
     public List<EarthquakeDto> Quakes { get; set; }
 
@@ -146,17 +148,23 @@
         _userSetMinDepth = ParseQueryArg("mindepth", MinDepth, true);
         _userSetMaxDepth = ParseQueryArg("maxdepth", MaxDepth, false);
         #endregion parse queries
+
+        // days
+        _minDays = Math.Ceiling(_userSetMinHours / 24);
+        _maxDays = Math.Ceiling(_userSetMaxHours / 24);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeAsync<IJSObjectReference>(
-                "import", "./Pages/Earthquakes.razor.js");
+            await JSRuntime.InvokeAsync<IJSObjectReference>("import", "/Pages/Earthquakes.razor.js");
+
+            // Create dotnet reference
+            var dotNetReference = DotNetObjectReference.Create(this);
 
             // Load initial scene
-            await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load");
+            await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load", dotNetReference);
 
             // Render quakes
             var visibleQuakes = GetVisibleQuakes();
@@ -236,6 +244,12 @@
     public async Task AddLocation(IEnumerable<Location> location)
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addLocation", location);
+    }
+
+    [JSInvokable("getEarthquake")]
+    public async Task<EarthquakeDto> GetEarthquake(Guid Id)
+    {
+        return Quakes.FirstOrDefault(q => q.ID == Id);
     }
     #endregion
 

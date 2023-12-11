@@ -14,6 +14,7 @@ namespace ReykjanesRidge.Models.Settings
 
     public class EarthquakeVisualizerSettings
     {
+        public int RetentionPolicy { get; set; } = 120; // 120 hours seems good as a max limit
         public List<Location> Locations { get; set; }
     }
 }

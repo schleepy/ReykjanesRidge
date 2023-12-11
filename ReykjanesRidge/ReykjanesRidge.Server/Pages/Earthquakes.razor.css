@@ -5,3 +5,29 @@
 ::deep #controls {
     width:500px !important;
 }
+
+::deep div.earthquakeInfo {
+    padding-left: 35px;
+    border-top: 1px solid white;
+    border-image: linear-gradient(); /* to top - at 50% transparent */
+    border-image-slice: 1;
+}
+
+::deep table.earthquakeInfo {
+    color: white;
+    font-size: 10px;
+    line-height: 0.6em;
+    border-left: 1px solid white;
+}
+
+::deep table.earthquakeInfo tbody {
+    border: 5px white !important;
+}
+
+::deep table.earthquakeInfo tr {
+    margin:0px 0px 0px 0px !important;
+}
+
+::deep table.earthquakeInfo td {
+    padding-top:-5px;
+}

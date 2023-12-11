@@ -8,6 +8,8 @@ var container = document.getElementById('threejscontainer');
 var clock, controls;
 var camera, scene, renderer, labelRenderer, mixer, animations, iceland, interaction;
 var earthquakes = [];
+var dotNetReference;
+var earthquakeInfos = [];
 
 $(document).ready(function () {
 
@@ -78,7 +80,9 @@ function loadFBX(path, context) {
 }
 
 // Load initial scene and populate with earthquakes
-function loadScene() {
+function loadScene(dotNetRef) {
+
+    dotNetReference = dotNetRef;
 
     if (!container) {
         return;
@@ -191,12 +195,19 @@ function AddEarthquake(earthquake, visible = true)
 
     // hover over
     earthquakeGroup.on('mouseover', (ev) => FocusEarthquake(ev));
-
     // hover out
     earthquakeGroup.on('mouseout', (ev) => UnfocusEarthquake(ev));
 
     // click on earthquake group
     earthquakeGroup.on('click', function (ev) {
+
+        for (var i = 0; i < earthquakeInfos.length; i++) {
+            iceland.remove(earthquakeInfos[i]);
+        }
+        earthquakeInfos = [];
+
+        DisplayEarthquakeInfo(ev.data.target);
+
         // focus target
         controls.target.copy(ev.data.target.position);
     });
@@ -264,6 +275,52 @@ function UnfocusEarthquake(event) {
     target.scale.setZ(1);
 }
 
+function DisplayEarthquakeInfo(target) {
+
+    var earthquakeId = getKeyByValue(earthquakes, target.id);
+
+    dotNetReference.invokeMethodAsync('getEarthquake', earthquakeId)
+        .then(earthquake => {
+
+            var earthquakeInfoDiv = document.createElement('div');
+            earthquakeInfoDiv.className = "earthquakeInfo";
+
+            var earthquakeInfoTable = document.createElement('table');
+            earthquakeInfoTable.className = "earthquakeInfo";
+            earthquakeInfoDiv.append(earthquakeInfoTable);
+
+            var timeStampRow = earthquakeInfoTable.insertRow(0);
+            timeStampRow.insertCell(0).innerHTML = "Timestamp";
+            timeStampRow.insertCell(1).innerHTML = earthquake["timeStamp"];
+
+            var locationRow = earthquakeInfoTable.insertRow(1);
+            locationRow.insertCell(0).innerHTML = "Location";
+            locationRow.insertCell(1).innerHTML = earthquake["friendlyLocation"];
+
+            var magnitudeRow = earthquakeInfoTable.insertRow(2);
+            magnitudeRow.insertCell(0).innerHTML = "Magnitude";
+            magnitudeRow.insertCell(1).innerHTML = earthquake["magnitude"];
+
+            var latitudeRow = earthquakeInfoTable.insertRow(3);
+            latitudeRow.insertCell(0).innerHTML = "Latitude";
+            latitudeRow.insertCell(1).innerHTML = earthquake["latitude"];
+
+            var longitudeRow = earthquakeInfoTable.insertRow(4);
+            longitudeRow.insertCell(0).innerHTML = "Longitude";
+            longitudeRow.insertCell(1).innerHTML = earthquake["longitude"];
+
+            var depthRow = earthquakeInfoTable.insertRow(5);
+            depthRow.insertCell(0).innerHTML = "Depth";
+            depthRow.insertCell(1).innerHTML = earthquake["depth"];
+
+            var earthquakeInfo = new CSS2DObject(earthquakeInfoDiv);
+            earthquakeInfo.position.copy(target.position);
+            earthquakeInfo.center.set(0, 0);
+            iceland.add(earthquakeInfo);
+            earthquakeInfos.push(earthquakeInfo);
+        });
+}
+
 function DrawLine(points)
 {
     var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
@@ -294,7 +351,7 @@ function GCStoCartesian(lat, lon, radius = earthRadius) {
 }
 
 window.EarthquakeVisualizerJS = {
-    load:             () => { loadScene(); },
+    load:             (dotNetRef) => { loadScene(dotNetRef); },
     addEarthquake:    (earthquake, visible) => { AddEarthquake(earthquake, visible); },
     addLocation:      (location) => { AddLocation(location); },
     //removeEarthquake: (id) => { removeEarthquake(id); },
