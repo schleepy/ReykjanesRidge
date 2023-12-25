@@ -201,12 +201,12 @@ function AddEarthquake(earthquake, visible = true)
     // click on earthquake group
     earthquakeGroup.on('click', function (ev) {
 
-        /*for (var i = 0; i < earthquakeInfos.length; i++) {
+        for (var i = 0; i < earthquakeInfos.length; i++) {
             iceland.remove(earthquakeInfos[i]);
         }
         earthquakeInfos = [];
 
-        DisplayEarthquakeInfo(ev.data.target);*/
+        DisplayEarthquakeInfo(ev.data.target);
 
         // focus target
         controls.target.copy(ev.data.target.position);
