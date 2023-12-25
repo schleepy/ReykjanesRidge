@@ -60,7 +60,7 @@ function render() {
 
 function loadFBX(path, context) {
     const fbxLoader = new FBXLoader()
-    fbxLoader.load('/models/iceland_flat_svg.fbx', function (object) {
+    fbxLoader.load(path, function (object) {
             object.scale.set(.4, .4, .4)
             object.position.setX(36);
             object.position.setZ(-20);
