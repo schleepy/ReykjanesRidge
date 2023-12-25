@@ -1,0 +1,104 @@
+﻿@inherits ComponentBase
+@inject IJSRuntime JSRuntime;
+
+<div id="@Id" class="ui @(Color ?? Color) @(BottomAlignedLabels ? "bottom aligned" : "") @(Labeled ? "labeled" : "") @(Ticked ? "ticked" : "") range slider" style="@Style"></div>
+
+@code {
+
+    [Parameter]
+    public string? Id { get; set; }
+    [Parameter]
+    public decimal Min { get; set; } = 0;
+    [Parameter]
+    public decimal Max { get; set; } = 10;
+    [Parameter]
+    public decimal Start { get; set; } = 0;
+    [Parameter]
+    public decimal End { get; set; } = 10;
+    [Parameter]
+    public decimal Step { get; set; } = 1;
+    [Parameter]
+    public bool Smooth { get; set; } = true;
+    [Parameter]
+    public bool Labeled { get; set; } = false;
+    [Parameter]
+    public bool Ticked { get; set; } = false;
+    [Parameter]
+    public bool BottomAlignedLabels { get; set; } = false;
+    [Parameter]
+    public bool ShowThumbTooltip { get; set; } = false;
+    [Parameter]
+    public string Color { get; set; } = "black";
+    [Parameter]
+    public int[] RestrictedLabels { get; set; } = new int[0] { };
+    [Parameter]
+    public int MaxLabels { get; set; } = 20;
+    [Parameter]
+    public string Style { get; set; }
+
+    [Parameter]
+    public decimal Range { get; set; }
+    [Parameter]
+    public decimal FirstValue { get; set; }
+    [Parameter]
+    public decimal SecondValue { get; set; }
+
+    [Parameter]
+    public EventCallback<decimal> OnValueChanged { get; set; }
+    [Parameter]
+    public EventCallback<decimal> FirstValueChanged { get; set; }
+    [Parameter]
+    public EventCallback<decimal> SecondValueChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Id))
+        {
+            Id = Guid.NewGuid().ToString();
+        }
+
+        if (Max - Min >= MaxLabels)
+        {
+            decimal increment = Math.Ceiling((Max - Min) / MaxLabels);
+            RestrictedLabels = new int[MaxLabels];
+            RestrictedLabels[0] = Convert.ToInt32(Min);
+            RestrictedLabels[RestrictedLabels.Length - 1] = Convert.ToInt32(Max);
+            for (int i = 1; i < RestrictedLabels.Length-1; i++)
+            {
+                RestrictedLabels[i] = Convert.ToInt32(i * increment);
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./Components/FomRangeSlider.razor.js");
+
+            var dotNetReference = DotNetObjectReference.Create(this);
+
+            await JSRuntime.InvokeVoidAsync("fomRangeSlider.init", dotNetReference, Id, Min, Max, Start, End, Step, Smooth, ShowThumbTooltip, Color, RestrictedLabels);
+        }
+    }
+
+    [JSInvokable("valueChanged")]
+    public async Task ValueChanged(decimal range, decimal firstVal, decimal secondVal)
+    {
+        if (FirstValue != firstVal)
+        {
+            FirstValue = firstVal;
+            await FirstValueChanged.InvokeAsync(firstVal);
+        }
+
+        if (SecondValue != secondVal)
+        {
+            SecondValue = SecondValue;
+            await SecondValueChanged.InvokeAsync(secondVal);
+        }
+        //var args = new FomRangeSliderEventArgs { Range = 3, FirstValue = firstVal, SecondValue = secondVal };
+        
+        await OnValueChanged.InvokeAsync();
+    }
+}

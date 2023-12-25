@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ReykjanesRidge.Models.Dtos;
+using ReykjanesRidge.Models.Settings;
 using ReykjanesRidge.Repository;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,15 +14,16 @@ namespace ReykjanesRidge.Services.Implementations
     public class EarthquakeService
     {
         private readonly ApplicationContext Context;
-        private readonly EarthquakePopulatorService EarthquakePopulatorService;
+        private readonly EarthquakeVisualizerSettings EarthquakeVisualizerSettings;
         private readonly IMapper Mapper;
 
         public event Action<EarthquakeDto> OnEarthquakeAdded;
 
-        public EarthquakeService(ApplicationContext context, /*EarthquakePopulatorService earthquakePopulatorService,*/ IMapper mapper)
+        public EarthquakeService(ApplicationContext context, EarthquakeVisualizerSettings earthquakeVisualizerSettings, IMapper mapper)
         {
             Context = context;
             Mapper = mapper;
+            EarthquakeVisualizerSettings = earthquakeVisualizerSettings;
             //EarthquakePopulatorService = earthquakePopulatorService;
 
             // Connect notifier up the chain
@@ -29,7 +32,8 @@ namespace ReykjanesRidge.Services.Implementations
 
         public async Task<List<EarthquakeDto>> GetAll()
         {
-            return Mapper.Map<List<EarthquakeDto>>(await Context.Earthquakes.ToListAsync());
+            var earthquakes = (await Context.Earthquakes.ToListAsync()).Where(e => (DateTime.UtcNow - e.TimeStamp).TotalHours <= EarthquakeVisualizerSettings.RetentionPolicy);
+            return Mapper.Map<List<EarthquakeDto>>(earthquakes);
         }
 
         public async Task<EarthquakeDto> GetOne()

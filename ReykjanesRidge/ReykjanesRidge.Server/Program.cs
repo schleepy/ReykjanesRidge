@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ReykjanesRidge.Models.Settings;
 using ReykjanesRidge.Repository;
-using ReykjanesRidge.Server.Data;
 using ReykjanesRidge.Services.Implementations;
 using AutoMapper;
 using Microsoft.AspNetCore.StaticFiles;
@@ -22,6 +23,7 @@ namespace ReykjanesRidge.Server
             builder.Services.AddServerSideBlazor();
             builder.Services.AddScoped<EarthquakeService>();
             builder.Services.AddSingleton<EarthquakeNotifierService>();
+            builder.Services.AddLocalization();
 
             var connectionString = builder.Configuration.GetConnectionString("ApplicationContext");
             builder.Services.AddDbContext<ApplicationContext>(options =>
@@ -31,11 +33,16 @@ namespace ReykjanesRidge.Server
             builder.Services.Configure<EarthquakePopulatorSettings>(builder.Configuration.GetSection("EarthquakePopulator"));
             builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<EarthquakePopulatorSettings>>().Value);
 
+            builder.Services.Configure<EarthquakeVisualizerSettings>(builder.Configuration.GetSection("EarthquakeVisualizer"));
+            builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<EarthquakeVisualizerSettings>>().Value);
+
             // AutoMapper
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             // Background services
             builder.Services.AddHostedService<EarthquakePopulatorService>();
+
+            //builder.Services.AddWebOptimizer();
 
             var app = builder.Build();
 
@@ -47,6 +54,19 @@ namespace ReykjanesRidge.Server
                 app.UseHsts();
             }
 
+            //app.UseWebOptimizer();
+
+            var supportedCultures = new[]{
+            new CultureInfo("en-US")
+};
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture("en-US"),
+                SupportedCultures = supportedCultures,
+                FallBackToParentCultures = false
+            });
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+
             app.UseHttpsRedirection();
 
             var provider = new FileExtensionContentTypeProvider();
@@ -55,8 +75,6 @@ namespace ReykjanesRidge.Server
             {
                 ContentTypeProvider = provider
             });
-
-            app.UseStaticFiles();
 
             app.UseStaticFiles();
 
