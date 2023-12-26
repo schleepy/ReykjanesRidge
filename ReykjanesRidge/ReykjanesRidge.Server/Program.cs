@@ -40,7 +40,7 @@ namespace ReykjanesRidge.Server
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             // Background services
-            builder.Services.AddHostedService<EarthquakePopulatorService>();
+            //builder.Services.AddHostedService<EarthquakePopulatorService>();
 
             //builder.Services.AddWebOptimizer();
 
@@ -71,6 +71,9 @@ namespace ReykjanesRidge.Server
 
             var provider = new FileExtensionContentTypeProvider();
             provider.Mappings.Add(".fbx", "text/xml");
+            //provider.Mappings.Add(".frag", "text/plain");
+            //provider.Mappings.Add(".vert", "text/plain");
+            provider.Mappings[".txt"] = "text/javascript";
             app.UseStaticFiles(new StaticFileOptions
             {
                 ContentTypeProvider = provider

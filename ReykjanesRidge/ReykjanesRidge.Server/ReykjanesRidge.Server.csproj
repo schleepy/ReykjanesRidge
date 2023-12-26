@@ -27,11 +27,336 @@
   <ItemGroup>
     <Folder Include="wwwroot\js\threejs\curves\" />
     <Folder Include="wwwroot\js\threejs\libs\" />
+    <Folder Include="wwwroot\js\threejs\postprocessing\shaders\" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Update="wwwroot\js\jquery\jquery-3.7.1.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\add.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\alpha.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\average.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\color-burn.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\color-dodge.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\color.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\darken.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\difference.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\divide.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\exclusion.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\hard-light.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\hard-mix.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\hue.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\invert-rgb.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\invert.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\lighten.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\linear-burn.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\linear-dodge.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\linear-light.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\luminosity.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\multiply.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\negation.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\normal.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\overlay.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\pin-light.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\reflect.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\saturation.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\screen.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\soft-light.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\src.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\subtract.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\blending\glsl\vivid-light.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\bloom.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\bokeh.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\brightness-contrast.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\chromatic-aberration.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\chromatic-aberration.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\color-average.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\color-depth.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\depth-of-field.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\depth.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\dot-screen.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\fuck.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\fxaa.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\fxaa.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\gamma-correction.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\glitch.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\god-rays.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\grid.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\hue-saturation.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\lens-distortion.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\lut-1d.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\lut-3d.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\noise.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\outline.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\outline.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\pixelation.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\realistic-bokeh.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\scanlines.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\sepia.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\shock-wave.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\shock-wave.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\smaa.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\smaa.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\ssao.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\texture.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\texture.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\tilt-shift.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\tilt-shift.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\tone-mapping.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\effects\glsl\vignette.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\adaptive-luminance.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\circle-of-confusion.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\common.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.bokeh.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.box.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.box.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.downsampling.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.downsampling.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.gaussian.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.gaussian.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.god-rays.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.kawase.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.kawase.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.tilt-shift.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.tilt-shift.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.upsampling.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\convolution.upsampling.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\copy.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\depth-comparison.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\depth-comparison.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\depth-copy.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\depth-copy.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\depth-downsampling.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\depth-downsampling.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\depth-mask.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\edge-detection.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\edge-detection.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\effect.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\effect.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\luminance.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\mask.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\outline.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\outline.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\smaa-weights.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\smaa-weights.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\ssao.frag.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\threejs\postprocessing\src\materials\glsl\ssao.vert.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\models\iceland.fbx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

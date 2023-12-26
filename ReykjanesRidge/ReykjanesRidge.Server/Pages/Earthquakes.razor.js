@@ -3,13 +3,23 @@ import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
 import { CSS2DRenderer, CSS2DObject } from '/js/threejs/renderers/CSS2DRenderer.js';
 import { Interaction } from '/js/threejs/interaction/src/three.interaction.js'; // Add on from from jasonChen1982 on github, thank you!
+import { EffectComposer } from '/js/threejs/postprocessing/EffectComposer.js';
+import { RenderPass } from '/js/threejs/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from '/js/threejs/postprocessing/UnrealBloomPass.js';
 
 var container = document.getElementById('threejscontainer');
 var clock, controls;
-var camera, scene, renderer, labelRenderer, mixer, animations, iceland, interaction;
+var composer, camera, scene, renderer, labelRenderer, mixer, animations, iceland, interaction;
 var earthquakes = [];
 var dotNetReference;
 var earthquakeInfos = [];
+
+const params = {
+    exposure: 1,
+    bloomStrength: 3,
+    bloomThreshold: 0,
+    bloomRadius: 0
+};
 
 $(document).ready(function () {
 
@@ -21,6 +31,7 @@ $(document).ready(function () {
         var box = container.getBoundingClientRect();
         renderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(width, height);
 
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix()
@@ -40,6 +51,7 @@ const magnitudeColors = [ // colors based on magnitude, magnitude is floored and
 function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
+    composer.render();
     labelRenderer.render(scene, camera);
 }
 
@@ -92,8 +104,20 @@ function loadScene(dotNetRef) {
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
     camera.position.copy(cameraStartingPos); // Set camera starting pos
 
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ReinhardToneMapping;
+
+    const renderScene = new RenderPass(scene, camera);
+
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+    bloomPass.threshold = params.bloomThreshold;
+    bloomPass.strength = params.bloomStrength;
+    bloomPass.radius = params.bloomRadius;
+
+    composer = new EffectComposer(renderer);
+    composer.addPass(renderScene);
+    composer.addPass(bloomPass);
 
     labelRenderer = new CSS2DRenderer();
     labelRenderer.setSize(window.innerWidth, window.innerHeight);
@@ -147,7 +171,7 @@ function AddEarthquake(earthquake, visible = true)
     var magnitude = earthquake["magnitude"];
     var magnitudeColor = new THREE.Color(magnitudeColors[Math.floor(magnitude)]);
 
-    var geometry = new THREE.SphereGeometry(magnitude/2, 32, 10);
+    var geometry = new THREE.SphereGeometry(magnitude/2, 16, 14);
     var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
     var sphere = new THREE.Mesh(geometry, material);
 
