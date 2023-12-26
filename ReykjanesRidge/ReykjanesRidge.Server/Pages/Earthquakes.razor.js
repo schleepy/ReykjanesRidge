@@ -6,17 +6,19 @@ import { Interaction } from '/js/threejs/interaction/src/three.interaction.js'; 
 import { EffectComposer } from '/js/threejs/postprocessing/EffectComposer.js';
 import { RenderPass } from '/js/threejs/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from '/js/threejs/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from '/js/threejs/postprocessing/ShaderPass.js';
+import { FXAAShader } from '/js/threejs/postprocessing/shaders/FXAAShader.js';
 
 var container = document.getElementById('threejscontainer');
 var clock, controls;
-var composer, camera, scene, renderer, labelRenderer, mixer, animations, iceland, interaction;
+var composer, camera, scene, renderScene, bloomPass, renderer, labelRenderer, mixer, animations, iceland, interaction;
 var earthquakes = [];
 var dotNetReference;
 var earthquakeInfos = [];
 
 const params = {
     exposure: 1,
-    bloomStrength: 3,
+    bloomStrength: 1,
     bloomThreshold: 0,
     bloomRadius: 0
 };
@@ -31,7 +33,7 @@ $(document).ready(function () {
         var box = container.getBoundingClientRect();
         renderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        composer.setSize(width, height);
+        composer.setSize(window.innerWidth, window.innerHeight);
 
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix()
@@ -50,7 +52,7 @@ const magnitudeColors = [ // colors based on magnitude, magnitude is floored and
 
 function animate() {
     requestAnimationFrame(animate);
-    renderer.render(scene, camera);
+    //renderer.render(scene, camera);
     composer.render();
     labelRenderer.render(scene, camera);
 }
@@ -104,19 +106,25 @@ function loadScene(dotNetRef) {
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
     camera.position.copy(cameraStartingPos); // Set camera starting pos
 
-    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ReinhardToneMapping;
 
-    const renderScene = new RenderPass(scene, camera);
+    renderScene = new RenderPass(scene, camera);
 
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+    const effectFXAA = new ShaderPass(FXAAShader);
+    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+    effectFXAA.renderToScreen = true;
+
+    bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
     bloomPass.threshold = params.bloomThreshold;
     bloomPass.strength = params.bloomStrength;
     bloomPass.radius = params.bloomRadius;
 
     composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
+    //composer.addPass(effectFXAA);
     composer.addPass(bloomPass);
 
     labelRenderer = new CSS2DRenderer();
