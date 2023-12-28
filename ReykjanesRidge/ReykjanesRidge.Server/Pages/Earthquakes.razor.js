@@ -1,7 +1,10 @@
 ﻿import * as THREE from '/js/threejs/three.module.js';
 import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
-import { CSS2DRenderer, CSS2DObject } from '/js/threejs/renderers/CSS2DRenderer.js';
+import {
+    CSS2DRenderer,
+    CSS2DObject
+} from '/js/threejs/renderers/CSS2DRenderer.js';
 import { Interaction } from '/js/threejs/interaction/src/three.interaction.js'; // Add on from from jasonChen1982 on github, thank you!
 import { EffectComposer } from '/js/threejs/postprocessing/EffectComposer.js';
 import { RenderPass } from '/js/threejs/postprocessing/RenderPass.js';
@@ -15,6 +18,7 @@ var composer, camera, scene, renderScene, bloomPass, renderer, labelRenderer, mi
 var earthquakes = [];
 var dotNetReference;
 var earthquakeInfos = [];
+var earthquakeEpicenters = [];
 
 const params = {
     exposure: 1,
@@ -55,6 +59,31 @@ function animate() {
     //renderer.render(scene, camera);
     composer.render();
     labelRenderer.render(scene, camera);
+    // make epicenters look at camera
+    /*for (var x = 0; x < Object.values(earthquakes).length; x++)
+    {
+        var earthquakeGroupId = Object.values(earthquakes)[x];
+        var earthquakeGroup = scene.getObjectById(earthquakeGroupId);
+
+        if (!earthquakeGroup)
+        {
+            continue;
+        }
+
+        // skip invisible groups
+        if (earthquakeGroup.visible == false)
+        {
+            continue;
+        }
+
+        for (var y = 0; y < earthquakeGroup.children.length; y++) {
+
+            if (earthquakeGroup.children[y].userData["type"] == "epicenter")
+            {
+                //earthquakeGroup.children[y].lookAt(camera.position);
+            }
+        }
+    }*/
 }
 
 function render() {
@@ -83,9 +112,10 @@ function loadFBX(path, context) {
             object.traverse(function (child) {
                 if (child.material) {
                     child.material = new THREE.MeshStandardMaterial({
-                        color: 0x262626,
-                        emissive: 0x262626,
-                        opacity: 0.1
+                        color: 0x346beb,
+                        emissive: 0x346beb,
+                        opacity: 1,
+                        side: THREE.DoubleSide
                     });
                 }
             })
@@ -124,7 +154,7 @@ function loadScene(dotNetRef) {
 
     composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
-    //composer.addPass(effectFXAA);
+    composer.addPass(effectFXAA);
     composer.addPass(bloomPass);
 
     labelRenderer = new CSS2DRenderer();
@@ -140,7 +170,7 @@ function loadScene(dotNetRef) {
 
     iceland = new THREE.Group();
 
-    var icelandModel = loadFBX('/models/iceland_flat_svg.fbx', iceland);
+    var icelandModel = loadFBX('/models/iceland_flat_edges_svg.fbx', iceland);
 
     scene.add(iceland);
 
@@ -179,24 +209,41 @@ function AddEarthquake(earthquake, visible = true)
     var magnitude = earthquake["magnitude"];
     var magnitudeColor = new THREE.Color(magnitudeColors[Math.floor(magnitude)]);
 
-    var geometry = new THREE.SphereGeometry(magnitude/2, 16, 14);
-    var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    var sphere = new THREE.Mesh(geometry, material);
+    //var geometry = new THREE.SphereGeometry(magnitude/2, 16, 14);
+    //var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    //var sphere = new THREE.Mesh(geometry, material);
 
     // Get X and Y position from longitude and latitude
     var position = GCStoCartesian(earthquake["latitude"], earthquake["longitude"]);
 
-    sphere.material.color.set(magnitudeColor);
-    sphere.material.emissive.set(magnitudeColor);
-    sphere.material.transparent = true;
-    sphere.material.opacity = 0.6;
-
+    // create earthquakegroup
     var earthquakeGroup = new THREE.Group();
 
     earthquakeGroup.position.copy(position);
     earthquakeGroup.position.setY(-(earthquake["depth"])); // Set depth
-    earthquakeGroup.add(sphere);
     earthquakeGroup.visible = visible;
+
+    // change sphere to circle to save some FPS
+    /*var epicenterCircle = DrawCircle(earthquake["magnitude"]/2, 16);
+    epicenterCircle.material.color.set(magnitudeColor);
+    epicenterCircle.material.emissive.set(magnitudeColor);
+    epicenterCircle.material.transparent = true;
+    epicenterCircle.material.opacity = 0.6;
+    epicenterCircle.userData["type"] = "epicenter";*/
+
+    var spriteMaterial = new THREE.SpriteMaterial({
+        program: function (context) {
+            context.beginPath();
+            context.arc(0, 0, 2, 0, Math.PI * 2, true);
+            context.fill();
+        }
+    });
+
+    var sprite = new THREE.Sprite(spriteMaterial);
+    sprite.material.color = magnitudeColor;
+    sprite.scale.set(magnitude/2, magnitude/2, magnitude/2)
+
+    earthquakeGroup.add(sprite);
 
     var surface = earthquake["depth"] + (Math.random() * 0.3);
 
