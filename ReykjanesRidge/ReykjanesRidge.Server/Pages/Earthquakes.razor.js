@@ -114,8 +114,7 @@ function loadFBX(path, context) {
                     child.material = new THREE.MeshStandardMaterial({
                         color: 0x346beb,
                         emissive: 0x346beb,
-                        opacity: 1,
-                        side: THREE.DoubleSide
+                        opacity: 1
                     });
                 }
             })
@@ -133,6 +132,7 @@ function loadScene(dotNetRef) {
     }
 
     scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0d0d0d);
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
     camera.position.copy(cameraStartingPos); // Set camera starting pos
 
@@ -231,12 +231,9 @@ function AddEarthquake(earthquake, visible = true)
     epicenterCircle.material.opacity = 0.6;
     epicenterCircle.userData["type"] = "epicenter";*/
 
+    var spriteImage = new THREE.TextureLoader().load("/img/epicenter.png");
     var spriteMaterial = new THREE.SpriteMaterial({
-        program: function (context) {
-            context.beginPath();
-            context.arc(0, 0, 2, 0, Math.PI * 2, true);
-            context.fill();
-        }
+        map: spriteImage
     });
 
     var sprite = new THREE.Sprite(spriteMaterial);
@@ -254,7 +251,7 @@ function AddEarthquake(earthquake, visible = true)
     line.material.emissive.set(magnitudeColor);
     line.material.transparent = true;
     line.material.opacity = 0.2;
-    earthquakeGroup.add(line);
+    //earthquakeGroup.add(line);
 
     // draw circle on surface
     var circle = DrawCircle(earthquake["magnitude"]/2);
@@ -264,7 +261,7 @@ function AddEarthquake(earthquake, visible = true)
     circle.material.emissive.set(magnitudeColor);
     circle.material.transparent = true;
     circle.material.opacity = 0.5;
-    earthquakeGroup.add(circle);
+    //earthquakeGroup.add(circle);
     earthquakeGroup.layers.set(1);
 
     iceland.add(earthquakeGroup);
@@ -334,9 +331,9 @@ function FocusEarthquake(event)
     };*/
 
     // scale up
-    target.scale.setX(1.1);
-    target.scale.setY(1.1);
-    target.scale.setZ(1.1);
+    target.scale.setX(2);
+    target.scale.setY(2);
+    target.scale.setZ(2);
 }
 function UnfocusEarthquake(event) {
     var target = event.data.target;
