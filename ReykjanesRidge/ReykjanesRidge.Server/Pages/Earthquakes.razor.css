@@ -2,8 +2,10 @@
     color:white !important;
 }
 
-::deep #controls {
-    width:500px !important;
+#controls {
+    min-width: 450px !important;
+    background-color: rgba(0,0,0,0.5) !important;
+    overflow: hidden !important;
 }
 
 ::deep div.earthquakeInfo {
@@ -30,4 +32,12 @@
 
 ::deep table.earthquakeInfo td {
     padding-top:-5px;
+}
+
+::deep #earthquakeVisualizer {
+    cursor:grab !important;
+}
+
+.controls {
+    position:absolute !important;
 }

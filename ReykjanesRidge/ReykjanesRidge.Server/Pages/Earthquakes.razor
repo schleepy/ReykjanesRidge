@@ -13,9 +13,13 @@
 
 <PageTitle>Earthquakes in Iceland</PageTitle>
 
-<div id="threejscontainer"></div>
+<div id="earthquakeVisualizer" style="cursor:grab"></div>
 
-<div id="controls" class="ui sidebar right inverted vertical menu" style="width:400px;background-color:rgba(255, 0, 0, 0);overflow:hidden">
+<!--<div id="topControls" class="controls" style="top:0">
+    <SemButton Id="2D3DSwitch" OnClick="ToggleCamera">@(ThreeD ? "2D" : "3D")</SemButton>
+</div>-->
+
+<div id="controls" class="ui sidebar right inverted vertical menu">
     <div style="padding:20px">
         <span style="color:white">Magnitude range</span>
         <FomRangeSlider 
@@ -97,6 +101,8 @@
     public decimal MinDepth { get; set; }
     [Parameter]
     public decimal MaxDepth { get; set; }
+    [Parameter]
+    public bool ThreeD {get; set;} = true;
 
     private decimal _userSetMinMagnitude,
                     _userSetMaxMagnitude,
@@ -244,6 +250,12 @@
     public async Task AddLocation(IEnumerable<Location> location)
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addLocation", location);
+    }
+
+    public async Task ToggleCamera()
+    {
+        ThreeD = !ThreeD;
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.toggleCamera", ThreeD);
     }
 
     [JSInvokable("getEarthquake")]

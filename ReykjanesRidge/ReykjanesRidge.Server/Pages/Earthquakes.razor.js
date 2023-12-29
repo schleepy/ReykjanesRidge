@@ -12,9 +12,9 @@ import { UnrealBloomPass } from '/js/threejs/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from '/js/threejs/postprocessing/ShaderPass.js';
 import { FXAAShader } from '/js/threejs/postprocessing/shaders/FXAAShader.js';
 
-var container = document.getElementById('threejscontainer');
+var container = document.getElementById('earthquakeVisualizer');
 var clock, controls;
-var composer, camera, scene, renderScene, bloomPass, renderer, labelRenderer, mixer, animations, iceland, interaction;
+var composer, perspectiveCamera, orthographicCamera, activeCamera, scene, renderScene, bloomPass, renderer, labelRenderer, mixer, animations, iceland, interaction;
 var earthquakes = [];
 var dotNetReference;
 var earthquakeInfos = [];
@@ -31,7 +31,7 @@ $(document).ready(function () {
 
     $(window).resize(function () {
 
-        if (renderer == null || camera == null)
+        if (renderer == null || perspectiveCamera == null)
             return;
 
         var box = container.getBoundingClientRect();
@@ -39,8 +39,8 @@ $(document).ready(function () {
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
 
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix()
+        perspectiveCamera.aspect = window.innerWidth / window.innerHeight;
+        perspectiveCamera.updateProjectionMatrix()
     });
 });
 
@@ -58,7 +58,7 @@ function animate() {
     requestAnimationFrame(animate);
     //renderer.render(scene, camera);
     composer.render();
-    labelRenderer.render(scene, camera);
+    labelRenderer.render(scene, activeCamera);
     // make epicenters look at camera
     /*for (var x = 0; x < Object.values(earthquakes).length; x++)
     {
@@ -84,15 +84,6 @@ function animate() {
             }
         }
     }*/
-}
-
-function render() {
-    var delta = clock.getDelta();
-    if (mixer !== undefined) {
-        mixer.update(delta);
-    }
-    renderer.render(scene, camera);
-    labelRenderer.render(scene, camera);
 }
 
 /**
@@ -133,15 +124,17 @@ function loadScene(dotNetRef) {
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0d0d0d);
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
-    camera.position.copy(cameraStartingPos); // Set camera starting pos
+    perspectiveCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 20000);
+    perspectiveCamera.position.copy(cameraStartingPos); // Set camera starting pos
+
+    activeCamera = perspectiveCamera;
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ReinhardToneMapping;
 
-    renderScene = new RenderPass(scene, camera);
+    renderScene = new RenderPass(scene, activeCamera);
 
     const effectFXAA = new ShaderPass(FXAAShader);
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
@@ -163,7 +156,7 @@ function loadScene(dotNetRef) {
     labelRenderer.domElement.style.top = '0px';
 
     // interaction
-    interaction = new Interaction(labelRenderer, scene, camera);
+    interaction = new Interaction(labelRenderer, scene, perspectiveCamera);
 
     container.appendChild(renderer.domElement);
     container.appendChild(labelRenderer.domElement);
@@ -181,13 +174,14 @@ function loadScene(dotNetRef) {
     scene.add(ambientLight);
 
     var pointLight = new THREE.PointLight(0xffffff, 0.8);
-    scene.add(camera);
-    camera.add(pointLight);
+    //scene.add(perspectiveCamera);
+    //scene.add(orthographicCamera);
+    perspectiveCamera.add(pointLight);
 
-    controls = new OrbitControls(camera, labelRenderer.domElement);
-    controls.screenSpacePanning = false;
+    controls = new OrbitControls(perspectiveCamera, labelRenderer.domElement);
+    controls.screenSpacePanning = true;
     controls.minDistance = 5;
-    controls.maxDistance = 3000;
+    controls.maxDistance = 20000;
     controls.target.copy(cameraStartingFocusPoint);
     controls.update();  
 
@@ -286,6 +280,7 @@ function AddEarthquake(earthquake, visible = true)
 
         // focus target
         controls.target.copy(ev.data.target.position);
+        activeCamera.updateProjectionMatrix();
     });
 
     earthquakes[earthquake["id"]] = earthquakeGroup.id;
@@ -397,6 +392,30 @@ function DisplayEarthquakeInfo(target) {
         });
 }
 
+function ToggleCamera(threeD)
+{
+    if (threeD)
+    {
+        controls.enabled = true;
+        activeCamera.fov = 50;
+        scene.rotation.y -= 4.8;
+        scene.position.z += 40;
+        activeCamera.updateProjectionMatrix();
+    }
+    else
+    {
+        controls.enabled = false;
+        activeCamera.fov = 5;
+        activeCamera.position.x = 18.78;
+        activeCamera.position.y = 4450;
+        activeCamera.position.z = 19.94;
+        scene.rotation.y += 4.8;
+        scene.position.z -= 40;
+        activeCamera.updateProjectionMatrix();
+        controls.update();
+    }
+}
+
 function DrawLine(points)
 {
     var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
@@ -434,7 +453,8 @@ window.EarthquakeVisualizerJS = {
     showEarthquake:   (ids) => { showEarthquake(ids); },
     hideEarthquake:   (ids) => { hideEarthquake(ids); },
     setCameraPos:     (x, y, z) => { setCameraPosition(x, y, z) },
-    toggleSidebar:    () => { toggleSidebar(); }
+    toggleSidebar:    () => { toggleSidebar(); },
+    toggleCamera:     (threeD) => { ToggleCamera(threeD); }
 };
 
 function hideEarthquake(ids)
@@ -468,15 +488,19 @@ function showEarthquake(ids)
 }
     
 function toggleSidebar() {
-    $(".ui.sidebar").sidebar({transition: 'overlay'});
+    $(".ui.sidebar").sidebar({
+        transition: 'overlay',
+        mobileTransition: 'overlay'
+    });
     $('.ui.sidebar')
         .sidebar('toggle');
 }
 
 function Debug() {
-    if (camera != null) {
+    if (perspectiveCamera != null) {
         console.log("camera position: ");
-        console.log(camera.position);
+        console.log(perspectiveCamera.position);
+        console.log(perspectiveCamera.rotation);
     }
     setTimeout(Debug, 5000);
 }
@@ -486,7 +510,9 @@ function setCameraPosition(x, y, z)
     if (camera == null)
         return;
 
-    camera.position.x = x;
-    camera.position.y = y;
-    camera.position.z = z;
+    perspectiveCamera.position.x = x;
+    perspectiveCamera.position.y = y;
+    perspectiveCamera.position.z = z;
 }
+
+Debug();
