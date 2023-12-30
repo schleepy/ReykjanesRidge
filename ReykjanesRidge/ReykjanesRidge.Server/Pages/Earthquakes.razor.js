@@ -186,6 +186,8 @@ function loadScene(dotNetRef) {
     controls.update();  
 
     animate();
+
+    dotNetRef.invokeMethodAsync("loaded");
 }
 
 function AddEarthquake(earthquake, visible = true)
@@ -490,7 +492,8 @@ function showEarthquake(ids)
 function toggleSidebar() {
     $(".ui.sidebar").sidebar({
         transition: 'overlay',
-        mobileTransition: 'overlay'
+        mobileTransition: 'overlay',
+        'dimPage': false
     });
     $('.ui.sidebar')
         .sidebar('toggle');

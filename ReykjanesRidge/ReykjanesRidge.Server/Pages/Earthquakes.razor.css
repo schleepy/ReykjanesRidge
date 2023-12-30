@@ -3,7 +3,7 @@
 }
 
 #controls {
-    min-width: 450px !important;
+    min-width: 350px !important;
     background-color: rgba(0,0,0,0.5) !important;
     overflow: hidden !important;
 }
@@ -38,6 +38,40 @@
     cursor:grab !important;
 }
 
-.controls {
+.controls 
+{
+    z-index:3;
+    right:0px;
     position:absolute !important;
+    padding:10px;
+}
+
+#topControls {
+    top: 0;
+}
+
+#bottomControls {
+    bottom:0;
+}
+
+::deep .ui.icon.button {
+    background-color: transparent;
+    color: white;
+    font-size: 1.5em;
+    padding: 5px !important;
+    margin: 0;
+}
+
+#filterInfo {
+    position:absolute;
+    display:block;
+    width:100%;
+    z-index:4;
+    bottom:0;
+    color:white;
+    text-align:center;
+}
+
+::deep #infoModal {
+    background-color:rgba(0,0,0,0.5);
 }
