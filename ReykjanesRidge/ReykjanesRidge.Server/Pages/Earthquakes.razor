@@ -13,9 +13,19 @@
 
 <PageTitle>Earthquakes in Iceland</PageTitle>
 
-<div id="threejscontainer"></div>
+<div id="earthquakeVisualizer" style="cursor:grab"></div>
 
-<div id="controls" class="ui sidebar right inverted vertical menu" style="width:400px;background-color:rgba(255, 0, 0, 0);overflow:hidden">
+@if (Loading) {
+<div class="ui active dimmer">
+    <div class="ui text loader">Loading</div>
+</div>
+}
+
+<div id="controls" class="ui sidebar right inverted vertical menu">
+    <SemButton OnClick="ToggleSidebar"
+        Icon=Icon.Times
+        Tooltip="Close filter">
+    </SemButton>
     <div style="padding:20px">
         <span style="color:white">Magnitude range</span>
         <FomRangeSlider 
@@ -65,24 +75,38 @@
             ShowThumbTooltip=true
             @bind-FirstValue=_userSetMinDepth
             @bind-SecondValue=_userSetMaxDepth
-            Smooth=false 
+            Smooth=false
             Labeled=true>
         </FomRangeSlider>
     </div>
 </div>
 
-<SemButton 
-    OnClick="ToggleSidebar" 
-    Class="vertical-center" 
-    Style="right:10px;z-index:2" 
-    Icon=Icon.Cog
-    Tooltip="Filter">
-</SemButton>
+@if (!Loading)
+{
+    <div id="topControls" class="controls">
+        <SemButton OnClick="ToggleSidebar"
+            Icon=Icon.Cog
+            Tooltip="Toggle filter">
+        </SemButton>
+        <SemButton OnClick="() => standardModal.Show()"
+            Icon=Icon.Info
+            Tooltip="Toggle filter">
+        </SemButton>
+    </div>
 
-<div style="color:white !important;z-index:99;position:absolute;bottom:5px;left:10px">
-    <h6 style="margin-bottom:-25px">Meteorological data supplied by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes">Icelandic Meteorological Office</a>. This site is a web technology demonstration and does not guarantee that data is displayed accurately, you can contact me via email for any questions regarding the project at <a href="mailto:jgh@tskoli.is">jgh@tskoli.is</a></h6>
-    <h3>Showing earthquakes in Iceland that are between @_userSetMinMagnitude and @_userSetMaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(_userSetMinHours == 0 ? $"in the last {_userSetMaxHours} hours" : $"between {_userSetMinHours} and {_userSetMaxHours} hours ago")</h3>
-</div>
+    <SemModal Id="infoModal" @ref="standardModal">
+        <Header>
+            A visually pleasing portrayal of earthquakes
+        </Header>
+        <Content>
+            <a href="#">icelandquakes</a> uses meteorological data collected by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes" target="_blank">Icelandic Meteorological Office</a> and does not guarantee that the displayed earthquakes are portrayed accurately as it is mainly a web technology demonstration.<br /><br />
+
+            If you have any questions or inquiries you can send me an email at <a href="mailto:jgh@tskoli.is">jgh@tskoli.is</a>
+        </Content>
+    </SemModal>
+
+    <p id="filterInfo">currently displaying earthquakes in Iceland that are between @_userSetMinMagnitude and @_userSetMaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(_userSetMinHours == 0 ? $"in the last {_userSetMaxHours} hours" : $"between {_userSetMinHours} and {_userSetMaxHours} hours ago")</p>
+}
 
 @code {
     [Parameter]
@@ -97,6 +121,12 @@
     public decimal MinDepth { get; set; }
     [Parameter]
     public decimal MaxDepth { get; set; }
+    [Parameter]
+    public bool ThreeD {get; set;} = true;
+    [Parameter]
+    public bool Loading { get; set; } = true;
+
+    private SemModal standardModal { get; set; }
 
     private decimal _userSetMinMagnitude,
                     _userSetMaxMagnitude,
@@ -246,10 +276,24 @@
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addLocation", location);
     }
 
+    public async Task ToggleCamera()
+    {
+        ThreeD = !ThreeD;
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.toggleCamera", ThreeD);
+    }
+
     [JSInvokable("getEarthquake")]
     public async Task<EarthquakeDto> GetEarthquake(Guid Id)
     {
         return Quakes.FirstOrDefault(q => q.ID == Id);
+    }
+
+    [JSInvokable("loaded")]
+    public async Task FinishedLoading()
+    {
+        Loading = false;
+        await InvokeAsync(StateHasChanged);
+        await ToggleSidebar();
     }
     #endregion
 
