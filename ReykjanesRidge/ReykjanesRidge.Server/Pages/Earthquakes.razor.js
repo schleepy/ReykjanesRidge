@@ -14,7 +14,7 @@ import { FXAAShader } from '/js/threejs/postprocessing/shaders/FXAAShader.js';
 
 var container = document.getElementById('earthquakeVisualizer');
 var clock, controls;
-var composer, perspectiveCamera, orthographicCamera, activeCamera, scene, renderScene, bloomPass, renderer, labelRenderer, mixer, animations, iceland, interaction;
+var composer, perspectiveCamera, orthographicCamera, activeCamera, scene, renderScene, bloomPass, effectFXAA, renderer, labelRenderer, mixer, animations, iceland, interaction;
 var earthquakes = [];
 var dotNetReference;
 var earthquakeInfos = [];
@@ -29,6 +29,13 @@ const params = {
 
 $(document).ready(function () {
 
+    $(".ui.sidebar").sidebar({
+        transition: 'overlay',
+        mobileTransition: 'overlay',
+        'dimPage': false,
+        closable: false
+    });
+
     $(window).resize(function () {
 
         if (renderer == null || perspectiveCamera == null)
@@ -38,6 +45,7 @@ $(document).ready(function () {
         renderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
+        effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 
         perspectiveCamera.aspect = window.innerWidth / window.innerHeight;
         perspectiveCamera.updateProjectionMatrix()
@@ -136,7 +144,7 @@ function loadScene(dotNetRef) {
 
     renderScene = new RenderPass(scene, activeCamera);
 
-    const effectFXAA = new ShaderPass(FXAAShader);
+    effectFXAA = new ShaderPass(FXAAShader);
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
     effectFXAA.renderToScreen = true;
 
@@ -273,11 +281,6 @@ function AddEarthquake(earthquake, visible = true)
     // click on earthquake group
     earthquakeGroup.on('click', function (ev) {
 
-        for (var i = 0; i < earthquakeInfos.length; i++) {
-            iceland.remove(earthquakeInfos[i]);
-        }
-        earthquakeInfos = [];
-
         DisplayEarthquakeInfo(ev.data.target);
 
         // focus target
@@ -332,6 +335,7 @@ function FocusEarthquake(event)
     target.scale.setY(2);
     target.scale.setZ(2);
 }
+
 function UnfocusEarthquake(event) {
     var target = event.data.target;
 
@@ -348,7 +352,30 @@ function UnfocusEarthquake(event) {
     target.scale.setZ(1);
 }
 
+function HighlightEarthquake(id, magnitude)
+{
+    var target = scene.getObjectById(earthquakes[id]);
+    var scale = 10 - magnitude;
+
+    target.scale.setX(scale);
+    target.scale.setY(scale);
+    target.scale.setZ(scale);
+
+    DisplayEarthquakeInfo(target);
+
+    setTimeout(function () {
+        target.scale.setX(1);
+        target.scale.setY(1);
+        target.scale.setZ(1);
+    }, 1500);
+}
+
 function DisplayEarthquakeInfo(target) {
+
+    for (var i = 0; i < earthquakeInfos.length; i++) {
+        iceland.remove(earthquakeInfos[i]);
+    }
+    earthquakeInfos = [];
 
     var earthquakeId = getKeyByValue(earthquakes, target.id);
 
@@ -384,7 +411,7 @@ function DisplayEarthquakeInfo(target) {
 
             var depthRow = earthquakeInfoTable.insertRow(5);
             depthRow.insertCell(0).innerHTML = "Depth";
-            depthRow.insertCell(1).innerHTML = earthquake["depth"];
+            depthRow.insertCell(1).innerHTML = earthquake["depth"] + " km";
 
             var earthquakeInfo = new CSS2DObject(earthquakeInfoDiv);
             earthquakeInfo.position.copy(target.position);
@@ -456,7 +483,8 @@ window.EarthquakeVisualizerJS = {
     hideEarthquake:   (ids) => { hideEarthquake(ids); },
     setCameraPos:     (x, y, z) => { setCameraPosition(x, y, z) },
     toggleSidebar:    () => { toggleSidebar(); },
-    toggleCamera:     (threeD) => { ToggleCamera(threeD); }
+    toggleCamera:     (threeD) => { ToggleCamera(threeD); },
+    highlightEarthquake: (id, magnitude) => { HighlightEarthquake(id, magnitude) }
 };
 
 function hideEarthquake(ids)
@@ -490,11 +518,6 @@ function showEarthquake(ids)
 }
     
 function toggleSidebar() {
-    $(".ui.sidebar").sidebar({
-        transition: 'overlay',
-        mobileTransition: 'overlay',
-        'dimPage': false
-    });
     $('.ui.sidebar')
         .sidebar('toggle');
 }

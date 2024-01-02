@@ -61,7 +61,7 @@
             Smooth=false
             Labeled=true>
         </FomRangeSlider>
-        <span style="color:white">Depth range</span>
+        <span style="color:white">Depth range (km)</span>
         <FomRangeSlider
             OnValueChanged="FilterChanged"
             Min=MinDepth
@@ -79,6 +79,15 @@
             Labeled=true>
         </FomRangeSlider>
     </div>
+</div>
+
+<div id="earthquakeList" class="ui sidebar left inverted vertical menu">
+    <Virtualize Items="@VisibleQuakes" Context="earthquake">
+        <div class="earthquakeListInfo" @onclick="@(() => HighlightEarthquake(earthquake))">
+            <span style="display:block">@earthquake.TimeStamp</span>
+            <span style="font-size:1em"><strong>@earthquake.Magnitude richter @earthquake.FriendlyLocation</strong></span>
+        </div>
+    </Virtualize>
 </div>
 
 @if (!Loading)
@@ -137,12 +146,15 @@
                     _minDays,
                     _maxDays;
 
-    public List<EarthquakeDto> Quakes { get; set; }
+    public ICollection<EarthquakeDto> Quakes { get; set; }
+    public ICollection<EarthquakeDto> VisibleQuakes { get; set; }
+    public IEnumerable<EarthquakeDto> HiddenQuakes { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         Quakes = await EarthquakeService.GetAll(); // Get all earthquakes
+        VisibleQuakes = Quakes;
 
         await ParseQuakes();
         await ParseUserSettings();
@@ -261,6 +273,11 @@
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.showEarthquake", Ids);
     }
 
+    public async Task HighlightEarthquake(EarthquakeDto earthquake)
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.highlightEarthquake", earthquake.ID, earthquake.Magnitude);
+    }
+
     public async Task ToggleSidebar()
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.toggleSidebar");
@@ -302,27 +319,29 @@
         var quakes = Quakes;
 
         // THIS IS FUCKING HOT DUDE, C# 9.0 DOING IT
-        var visibleQuakes = GetVisibleQuakes();
+        VisibleQuakes = GetVisibleQuakes();
 
         // Filter out all other quakes
-        var hiddenQuakes = quakes.Except(visibleQuakes);
+        HiddenQuakes = quakes.Except(VisibleQuakes);
 
-        await ShowEarthquake(visibleQuakes.Select(q => q.ID));
+        await ShowEarthquake(VisibleQuakes.Select(q => q.ID));
 
-        await HideEarthquake(hiddenQuakes.Select(q => q.ID));
+        await HideEarthquake(HiddenQuakes.Select(q => q.ID));
 
         await InvokeAsync(StateHasChanged);
     }
 
-    private IEnumerable<EarthquakeDto> GetVisibleQuakes()
+    private List<EarthquakeDto> GetVisibleQuakes()
     {
         var quakes = Quakes;
 
-        return from quake in quakes
+        var visibleQuakes = from quake in quakes
                let hoursSince = Convert.ToDecimal((DateTime.Now - quake.TimeStamp).TotalHours)
                where hoursSince >= _userSetMinHours && hoursSince <= _userSetMaxHours &&
                quake.Magnitude >= _userSetMinMagnitude && quake.Magnitude <= _userSetMaxMagnitude &&
                quake.Depth >= _userSetMinDepth && quake.Depth <= _userSetMaxDepth
                select quake;
+
+        return visibleQuakes.ToList();
     }
 }
