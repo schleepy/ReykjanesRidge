@@ -41,6 +41,7 @@
             Step=0.1m
             ShowThumbTooltip=true
             Color="teal"
+            Style="@(BuildGradientBackground())"
             @bind-FirstValue=_userSetMinMagnitude
             @bind-SecondValue=_userSetMaxMagnitude>
         </FomRangeSlider>
@@ -158,6 +159,8 @@
 
         await ParseQuakes();
         await ParseUserSettings();
+
+        var gradientColors = BuildGradientBackground();
     }
 
     protected async Task ParseQuakes()
@@ -329,6 +332,27 @@
         await HideEarthquake(HiddenQuakes.Select(q => q.ID));
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private string BuildGradientBackground()
+    {
+        string result = string.Empty;
+        decimal gap = MaxMagnitude - MinMagnitude;
+
+        int y = 1;
+        for (int i = Convert.ToInt32(MinMagnitude); i < MaxMagnitude; i++)
+        {
+            result += $"rgba({EarthquakeVisualizerSettings.RichterColors[i]},1) {(100 / gap) * (y-1)}% {(100 / gap) * y}%";
+
+            if (i < MaxMagnitude-1)
+            {
+                result += ",";
+            }
+
+            y++;
+        }
+
+        return $"background:linear-gradient(90deg,{result});background-size:100% 20%;background-repeat:repeat-x";
     }
 
     private List<EarthquakeDto> GetVisibleQuakes()
