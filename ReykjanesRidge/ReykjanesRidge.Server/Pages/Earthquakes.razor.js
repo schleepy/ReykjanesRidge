@@ -32,7 +32,8 @@ $(document).ready(function () {
     $(".ui.sidebar").sidebar({
         transition: 'overlay',
         mobileTransition: 'overlay',
-        'dimPage': false
+        'dimPage': false,
+        closable: false
     });
 
     $(window).resize(function () {
