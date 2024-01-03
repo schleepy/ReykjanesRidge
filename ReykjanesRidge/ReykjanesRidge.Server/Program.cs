@@ -40,7 +40,7 @@ namespace ReykjanesRidge.Server
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             // Background services
-            //builder.Services.AddHostedService<EarthquakePopulatorService>();
+            builder.Services.AddHostedService<EarthquakePopulatorService>();
 
             //builder.Services.AddWebOptimizer();
 

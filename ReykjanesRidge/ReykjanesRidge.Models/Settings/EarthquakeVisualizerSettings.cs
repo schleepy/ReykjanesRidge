@@ -17,5 +17,6 @@ namespace ReykjanesRidge.Models.Settings
         public int RetentionPolicy { get; set; } = 120; // 120 hours seems good as a max limit
         public List<Location> Locations { get; set; }
         public string[] RichterColors { get; set; }
+        public string Model { get; set; }
     }
 }

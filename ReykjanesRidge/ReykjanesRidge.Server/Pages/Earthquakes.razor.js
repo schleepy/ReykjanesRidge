@@ -19,6 +19,7 @@ var earthquakes = [];
 var dotNetReference;
 var earthquakeInfos = [];
 var earthquakeEpicenters = [];
+var visualizerSettings;
 
 const params = {
     exposure: 1,
@@ -67,31 +68,6 @@ function animate() {
     //renderer.render(scene, camera);
     composer.render();
     labelRenderer.render(scene, activeCamera);
-    // make epicenters look at camera
-    /*for (var x = 0; x < Object.values(earthquakes).length; x++)
-    {
-        var earthquakeGroupId = Object.values(earthquakes)[x];
-        var earthquakeGroup = scene.getObjectById(earthquakeGroupId);
-
-        if (!earthquakeGroup)
-        {
-            continue;
-        }
-
-        // skip invisible groups
-        if (earthquakeGroup.visible == false)
-        {
-            continue;
-        }
-
-        for (var y = 0; y < earthquakeGroup.children.length; y++) {
-
-            if (earthquakeGroup.children[y].userData["type"] == "epicenter")
-            {
-                //earthquakeGroup.children[y].lookAt(camera.position);
-            }
-        }
-    }*/
 }
 
 /**
@@ -122,9 +98,10 @@ function loadFBX(path, context) {
 }
 
 // Load initial scene and populate with earthquakes
-function loadScene(dotNetRef) {
+function loadScene(dotNetRef, settings) {
 
     dotNetReference = dotNetRef;
+    visualizerSettings = settings;
 
     if (!container) {
         return;
@@ -171,25 +148,17 @@ function loadScene(dotNetRef) {
 
     iceland = new THREE.Group();
 
-    var icelandModel = loadFBX('/models/iceland_flat_edges_svg.fbx', iceland);
+    var icelandModel = loadFBX(settings.model, iceland);
 
     scene.add(iceland);
-
-    /*var gridHelper = new THREE.GridHelper(100, 2);
-    scene.add(gridHelper);*/
 
     var ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
 
-    /*var pointLight = new THREE.PointLight(0xffffff, 0.8);
-    //scene.add(perspectiveCamera);
-    //scene.add(orthographicCamera);
-    perspectiveCamera.add(pointLight);*/
-
     controls = new OrbitControls(perspectiveCamera, labelRenderer.domElement);
     controls.screenSpacePanning = true;
     controls.minDistance = 5;
-    controls.maxDistance = 20000;
+    controls.maxDistance = 1000;
     controls.target.copy(cameraStartingFocusPoint);
     controls.update();  
 
@@ -211,14 +180,20 @@ function AddEarthquake(earthquake, visible = true)
         return
 
     var magnitude = earthquake.magnitude;
-    var magnitudeColor = new THREE.Color(magnitudeColors[Math.floor(magnitude)]);
-
-    //var geometry = new THREE.SphereGeometry(magnitude/2, 16, 14);
-    //var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    //var sphere = new THREE.Mesh(geometry, material);
+    var magnitudeColor = new THREE.Color("rgb(" + visualizerSettings.richterColors[Math.floor(magnitude)] + ")");
 
     // Get X and Y position from longitude and latitude
     var position = GCStoCartesian(earthquake.latitude, earthquake.longitude);
+
+    var spriteImage = new THREE.TextureLoader().load("/img/epicenter.png");
+    var spriteMaterial = new THREE.SpriteMaterial({
+        map: spriteImage
+    });
+
+    var scale = Math.ceil(magnitude)/2;
+    var sprite = new THREE.Sprite(spriteMaterial);
+    sprite.material.color = magnitudeColor;
+    sprite.scale.set(scale, scale, scale)
 
     // create earthquakegroup
     var earthquakeGroup = new THREE.Group();
@@ -226,46 +201,7 @@ function AddEarthquake(earthquake, visible = true)
     earthquakeGroup.position.copy(position);
     earthquakeGroup.position.setY(-(earthquake.depth)); // Set depth
     earthquakeGroup.visible = visible;
-
-    // change sphere to circle to save some FPS
-    /*var epicenterCircle = DrawCircle(earthquake["magnitude"]/2, 16);
-    epicenterCircle.material.color.set(magnitudeColor);
-    epicenterCircle.material.emissive.set(magnitudeColor);
-    epicenterCircle.material.transparent = true;
-    epicenterCircle.material.opacity = 0.6;
-    epicenterCircle.userData["type"] = "epicenter";*/
-
-    var spriteImage = new THREE.TextureLoader().load("/img/epicenter.png");
-    var spriteMaterial = new THREE.SpriteMaterial({
-        map: spriteImage
-    });
-
-    var sprite = new THREE.Sprite(spriteMaterial);
-    sprite.material.color = magnitudeColor;
-    sprite.scale.set(magnitude/2, magnitude/2, magnitude/2)
-
     earthquakeGroup.add(sprite);
-
-    var surface = earthquake.depth + (Math.random() * 0.3);
-
-    // draw line reaching the surface from the epicenter
-    var points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, surface, 0)];
-    var line = DrawLine(points);
-    line.material.color.set(magnitudeColor);
-    line.material.emissive.set(magnitudeColor);
-    line.material.transparent = true;
-    line.material.opacity = 0.2;
-    //earthquakeGroup.add(line);
-
-    // draw circle on surface
-    var circle = DrawCircle(earthquake.magnitude/2);
-    circle.rotation.x = -(Math.PI / 2);
-    circle.position.setY(surface);
-    circle.material.color.set(magnitudeColor);
-    circle.material.emissive.set(magnitudeColor);
-    circle.material.transparent = true;
-    circle.material.opacity = 0.5;
-    //earthquakeGroup.add(circle);
     earthquakeGroup.layers.set(1);
 
     iceland.add(earthquakeGroup);
@@ -301,8 +237,7 @@ function AddLocation(location)
 
     var locationTagDiv = document.createElement('div');
     locationTagDiv.textContent = location["name"];
-    locationTagDiv.style.backgroundColor = 'transparent';
-    locationTagDiv.style.color = 'rgb(255, 255, 255)';
+    locationTagDiv.className = "locationTag";
     locationTagDiv.style.fontSize = (location["fontSize"]).toString() + "px";
 
     var position = GCStoCartesian(location["latitude"], location["longitude"]);
@@ -475,7 +410,7 @@ function GCStoCartesian(lat, lon, radius = earthRadius) {
 }
 
 window.EarthquakeVisualizerJS = {
-    load:             (dotNetRef) => { loadScene(dotNetRef); },
+    load:             (dotNetRef, settings) => { loadScene(dotNetRef, settings); },
     addEarthquake:    (earthquake, visible) => { AddEarthquake(earthquake, visible); },
     addLocation:      (location) => { AddLocation(location); },
     //removeEarthquake: (id) => { removeEarthquake(id); },
@@ -518,8 +453,11 @@ function showEarthquake(ids)
 }
     
 function toggleSidebar() {
-    $('.ui.sidebar')
-        .sidebar('toggle');
+    $('#controls').sidebar('toggle');
+
+    if (window.innerWidth > 920) {
+        $("#earthquakeList").sidebar('toggle');
+    }
 }
 
 function Debug() {
