@@ -13,6 +13,7 @@
 
 #earthquakeList {
     padding:5px;
+    overflow-x: hidden !important;
 }
 
 #earthquakeList .earthquakeListInfo {

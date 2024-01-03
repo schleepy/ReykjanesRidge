@@ -13,70 +13,59 @@
 
 <PageTitle>Earthquakes in Iceland</PageTitle>
 
-<div id="earthquakeVisualizer" style="cursor:grab"></div>
-
-@if (Loading) {
-<div class="ui active dimmer">
-    <div class="ui text loader">Loading</div>
-</div>
-}
-
 <div id="controls" class="ui sidebar right inverted vertical menu">
     <SemButton OnClick="ToggleSidebar"
-        Icon=Icon.Times
-        Tooltip="Close filter">
+               Icon=Icon.Times
+               Tooltip="Close filter">
     </SemButton>
     <div style="padding:20px">
         <span style="color:white">Magnitude range</span>
-        <FomRangeSlider 
-            OnValueChanged="FilterChanged"
-            Smooth=true 
-            Labeled=true
-            BottomAlignedLabels=true
-            Min=MinMagnitude
-            Max=MaxMagnitude
-            Start=_userSetMinMagnitude
-            End=_userSetMaxMagnitude
-            Ticked=true
-            Step=0.1m
-            ShowThumbTooltip=true
-            Color="teal"
-            @bind-FirstValue=_userSetMinMagnitude
-            @bind-SecondValue=_userSetMaxMagnitude>
+        <FomRangeSlider OnValueChanged="FilterChanged"
+                        Smooth=true
+                        Labeled=true
+                        BottomAlignedLabels=true
+                        Min=MinMagnitude
+                        Max=MaxMagnitude
+                        Start=_userSetMinMagnitude
+                        End=_userSetMaxMagnitude
+                        Ticked=true
+                        Step=0.1m
+                        ShowThumbTooltip=true
+                        Color="teal"
+                        @bind-FirstValue=_userSetMinMagnitude
+                        @bind-SecondValue=_userSetMaxMagnitude>
         </FomRangeSlider>
         <span style="color:white">Hours since occurance</span>
-        <FomRangeSlider
-            OnValueChanged="FilterChanged"
-            Min=MinHours
-            Max=MaxHours
-            Start=_userSetMinHours
-            End=_userSetMaxHours
-            Ticked=true
-            Color="blue"
-            BottomAlignedLabels=true
-            ShowThumbTooltip=true
-            MaxLabels=10
-            @bind-FirstValue=_userSetMinHours
-            @bind-SecondValue=_userSetMaxHours
-            Smooth=false
-            Labeled=true>
+        <FomRangeSlider OnValueChanged="FilterChanged"
+                        Min=MinHours
+                        Max=MaxHours
+                        Start=_userSetMinHours
+                        End=_userSetMaxHours
+                        Ticked=true
+                        Color="blue"
+                        BottomAlignedLabels=true
+                        ShowThumbTooltip=true
+                        MaxLabels=10
+                        @bind-FirstValue=_userSetMinHours
+                        @bind-SecondValue=_userSetMaxHours
+                        Smooth=false
+                        Labeled=true>
         </FomRangeSlider>
         <span style="color:white">Depth range (km)</span>
-        <FomRangeSlider
-            OnValueChanged="FilterChanged"
-            Min=MinDepth
-            Max=MaxDepth
-            Start=_userSetMinDepth
-            End=_userSetMaxDepth
-            BottomAlignedLabels=true
-            Ticked=true
-            Color="violet"
-            MaxLabels=10
-            ShowThumbTooltip=true
-            @bind-FirstValue=_userSetMinDepth
-            @bind-SecondValue=_userSetMaxDepth
-            Smooth=false
-            Labeled=true>
+        <FomRangeSlider OnValueChanged="FilterChanged"
+                        Min=MinDepth
+                        Max=MaxDepth
+                        Start=_userSetMinDepth
+                        End=_userSetMaxDepth
+                        BottomAlignedLabels=true
+                        Ticked=true
+                        Color="violet"
+                        MaxLabels=10
+                        ShowThumbTooltip=true
+                        @bind-FirstValue=_userSetMinDepth
+                        @bind-SecondValue=_userSetMaxDepth
+                        Smooth=false
+                        Labeled=true>
         </FomRangeSlider>
     </div>
 </div>
@@ -90,31 +79,41 @@
     </Virtualize>
 </div>
 
-@if (!Loading)
-{
-    <div id="topControls" class="controls">
-        <SemButton OnClick="ToggleSidebar"
-            Icon=Icon.Cog
-            Tooltip="Toggle filter">
-        </SemButton>
-        <SemButton OnClick="() => standardModal.Show()"
-            Icon=Icon.Info
-            Tooltip="Toggle filter">
-        </SemButton>
-    </div>
+<div class="pusher">
+    <div id="earthquakeVisualizer" style="cursor:grab"></div>
 
-    <SemModal Id="infoModal" @ref="standardModal">
-        <Header>
-            A visually pleasing portrayal of earthquakes
-        </Header>
-        <Content>
-            <a href="#">icelandquakes</a> uses meteorological data collected by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes" target="_blank">Icelandic Meteorological Office</a> and does not guarantee that the displayed earthquakes are portrayed accurately as it is mainly a web technology demonstration.<br /><br />
+    @if (!Loading)
+    {
+        <div id="topControls" class="controls">
+            <SemButton OnClick="ToggleSidebar"
+                       Icon=Icon.Cog
+                       Tooltip="Toggle filter">
+            </SemButton>
+            <SemButton OnClick="() => standardModal.Show()"
+                       Icon=Icon.Info
+                       Tooltip="Toggle filter">
+            </SemButton>
+        </div>
 
-            If you have any questions or inquiries you can send me an email at <a href="mailto:jgh@tskoli.is">jgh@tskoli.is</a>
-        </Content>
-    </SemModal>
+        <SemModal Id="infoModal" @ref="standardModal">
+            <Header>
+                A visually pleasing portrayal of earthquakes
+            </Header>
+            <Content>
+                <a href="#">icelandquakes</a> uses meteorological data collected by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes" target="_blank">Icelandic Meteorological Office</a> and does not guarantee that the displayed earthquakes are portrayed accurately as it is mainly a web technology demonstration.<br /><br />
 
-    <p id="filterInfo">currently displaying earthquakes in Iceland that are between @_userSetMinMagnitude and @_userSetMaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(_userSetMinHours == 0 ? $"in the last {_userSetMaxHours} hours" : $"between {_userSetMinHours} and {_userSetMaxHours} hours ago")</p>
+                If you have any questions or inquiries you can send me an email at <a href="mailto:jgh@tskoli.is">jgh@tskoli.is</a>
+            </Content>
+        </SemModal>
+
+        <p id="filterInfo">currently displaying earthquakes in Iceland that are between @_userSetMinMagnitude and @_userSetMaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(_userSetMinHours == 0 ? $"in the last {_userSetMaxHours} hours" : $"between {_userSetMinHours} and {_userSetMaxHours} hours ago")</p>
+    }
+</div>
+
+@if (Loading) {
+<div class="ui active dimmer">
+    <div class="ui text loader">Loading</div>
+</div>
 }
 
 @code {
@@ -206,7 +205,7 @@
             var dotNetReference = DotNetObjectReference.Create(this);
 
             // Load initial scene
-            await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load", dotNetReference);
+            await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load", dotNetReference, EarthquakeVisualizerSettings);
 
             // Render quakes
             var visibleQuakes = GetVisibleQuakes();
@@ -293,11 +292,11 @@
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addLocation", location);
     }
 
-    public async Task ToggleCamera()
+    /*public async Task ToggleCamera()
     {
         ThreeD = !ThreeD;
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.toggleCamera", ThreeD);
-    }
+    }*/
 
     [JSInvokable("getEarthquake")]
     public async Task<EarthquakeDto> GetEarthquake(Guid Id)

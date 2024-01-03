@@ -5,7 +5,7 @@ import {
     CSS2DRenderer,
     CSS2DObject
 } from '/js/threejs/renderers/CSS2DRenderer.js';
-import { Interaction } from '/js/threejs/interaction/src/three.interaction.js'; // Add on from from jasonChen1982 on github, thank you!
+import { Interaction } from '/js/threejs/interaction/src/three.interaction.js';
 import { EffectComposer } from '/js/threejs/postprocessing/EffectComposer.js';
 import { RenderPass } from '/js/threejs/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from '/js/threejs/postprocessing/UnrealBloomPass.js';
@@ -38,7 +38,7 @@ $(document).ready(function () {
 
     $(window).resize(function () {
 
-        if (renderer == null || perspectiveCamera == null)
+        if (renderer == null || activeCamera == null)
             return;
 
         var box = container.getBoundingClientRect();
@@ -47,8 +47,8 @@ $(document).ready(function () {
         composer.setSize(window.innerWidth, window.innerHeight);
         effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 
-        perspectiveCamera.aspect = window.innerWidth / window.innerHeight;
-        perspectiveCamera.updateProjectionMatrix()
+        activeCamera.aspect = window.innerWidth / window.innerHeight;
+        activeCamera.updateProjectionMatrix()
     });
 });
 
@@ -181,10 +181,10 @@ function loadScene(dotNetRef) {
     var ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
 
-    var pointLight = new THREE.PointLight(0xffffff, 0.8);
+    /*var pointLight = new THREE.PointLight(0xffffff, 0.8);
     //scene.add(perspectiveCamera);
     //scene.add(orthographicCamera);
-    perspectiveCamera.add(pointLight);
+    perspectiveCamera.add(pointLight);*/
 
     controls = new OrbitControls(perspectiveCamera, labelRenderer.domElement);
     controls.screenSpacePanning = true;
@@ -210,7 +210,7 @@ function AddEarthquake(earthquake, visible = true)
     if (iceland == null)
         return
 
-    var magnitude = earthquake["magnitude"];
+    var magnitude = earthquake.magnitude;
     var magnitudeColor = new THREE.Color(magnitudeColors[Math.floor(magnitude)]);
 
     //var geometry = new THREE.SphereGeometry(magnitude/2, 16, 14);
@@ -218,13 +218,13 @@ function AddEarthquake(earthquake, visible = true)
     //var sphere = new THREE.Mesh(geometry, material);
 
     // Get X and Y position from longitude and latitude
-    var position = GCStoCartesian(earthquake["latitude"], earthquake["longitude"]);
+    var position = GCStoCartesian(earthquake.latitude, earthquake.longitude);
 
     // create earthquakegroup
     var earthquakeGroup = new THREE.Group();
 
     earthquakeGroup.position.copy(position);
-    earthquakeGroup.position.setY(-(earthquake["depth"])); // Set depth
+    earthquakeGroup.position.setY(-(earthquake.depth)); // Set depth
     earthquakeGroup.visible = visible;
 
     // change sphere to circle to save some FPS
@@ -246,7 +246,7 @@ function AddEarthquake(earthquake, visible = true)
 
     earthquakeGroup.add(sprite);
 
-    var surface = earthquake["depth"] + (Math.random() * 0.3);
+    var surface = earthquake.depth + (Math.random() * 0.3);
 
     // draw line reaching the surface from the epicenter
     var points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, surface, 0)];
@@ -258,7 +258,7 @@ function AddEarthquake(earthquake, visible = true)
     //earthquakeGroup.add(line);
 
     // draw circle on surface
-    var circle = DrawCircle(earthquake["magnitude"]/2);
+    var circle = DrawCircle(earthquake.magnitude/2);
     circle.rotation.x = -(Math.PI / 2);
     circle.position.setY(surface);
     circle.material.color.set(magnitudeColor);
@@ -288,7 +288,7 @@ function AddEarthquake(earthquake, visible = true)
         activeCamera.updateProjectionMatrix();
     });
 
-    earthquakes[earthquake["id"]] = earthquakeGroup.id;
+    earthquakes[earthquake.id] = earthquakeGroup.id;
 }
 function AddLocation(location)
 {
@@ -391,27 +391,27 @@ function DisplayEarthquakeInfo(target) {
 
             var timeStampRow = earthquakeInfoTable.insertRow(0);
             timeStampRow.insertCell(0).innerHTML = "Timestamp";
-            timeStampRow.insertCell(1).innerHTML = earthquake["timeStamp"];
+            timeStampRow.insertCell(1).innerHTML = earthquake.timeStamp;
 
             var locationRow = earthquakeInfoTable.insertRow(1);
             locationRow.insertCell(0).innerHTML = "Location";
-            locationRow.insertCell(1).innerHTML = earthquake["friendlyLocation"];
+            locationRow.insertCell(1).innerHTML = earthquake.friendlyLocation;
 
             var magnitudeRow = earthquakeInfoTable.insertRow(2);
             magnitudeRow.insertCell(0).innerHTML = "Magnitude";
-            magnitudeRow.insertCell(1).innerHTML = earthquake["magnitude"];
+            magnitudeRow.insertCell(1).innerHTML = earthquake.magnitude;
 
             var latitudeRow = earthquakeInfoTable.insertRow(3);
             latitudeRow.insertCell(0).innerHTML = "Latitude";
-            latitudeRow.insertCell(1).innerHTML = earthquake["latitude"];
+            latitudeRow.insertCell(1).innerHTML = earthquake.latitude;
 
             var longitudeRow = earthquakeInfoTable.insertRow(4);
             longitudeRow.insertCell(0).innerHTML = "Longitude";
-            longitudeRow.insertCell(1).innerHTML = earthquake["longitude"];
+            longitudeRow.insertCell(1).innerHTML = earthquake.longitude
 
             var depthRow = earthquakeInfoTable.insertRow(5);
             depthRow.insertCell(0).innerHTML = "Depth";
-            depthRow.insertCell(1).innerHTML = earthquake["depth"] + " km";
+            depthRow.insertCell(1).innerHTML = earthquake.depth + " km";
 
             var earthquakeInfo = new CSS2DObject(earthquakeInfoDiv);
             earthquakeInfo.position.copy(target.position);
@@ -540,5 +540,3 @@ function setCameraPosition(x, y, z)
     perspectiveCamera.position.y = y;
     perspectiveCamera.position.z = z;
 }
-
-Debug();
