@@ -17,3 +17,7 @@ body {
 	position: absolute;
 	top: 50%;
 }
+
+#threejscontainer {
+	cursor:grab;
+}
