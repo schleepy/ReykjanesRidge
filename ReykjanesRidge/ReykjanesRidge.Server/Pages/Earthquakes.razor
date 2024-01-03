@@ -213,15 +213,6 @@
             // Load initial scene
             await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load", dotNetReference, EarthquakeVisualizerSettings);
 
-            // Render quakes
-            var visibleQuakes = GetVisibleQuakes();
-            var hiddenQuakes = Quakes.Except(visibleQuakes);
-            await AddEarthquake(visibleQuakes);
-            await AddEarthquake(hiddenQuakes, false);
-
-            // Render location tags
-            await AddLocation(EarthquakeVisualizerSettings.Locations);
-
             // event handling
             // EarthquakeNotifierService.OnEarthquakeAdded += EarthquakeAdded;
         }
@@ -313,6 +304,15 @@
     [JSInvokable("loaded")]
     public async Task FinishedLoading()
     {
+        // Render quakes
+        var visibleQuakes = GetVisibleQuakes();
+        var hiddenQuakes = Quakes.Except(visibleQuakes);
+        await AddEarthquake(visibleQuakes);
+        await AddEarthquake(hiddenQuakes, false);
+
+        // Render location tags
+        await AddLocation(EarthquakeVisualizerSettings.Locations);
+
         Loading = false;
         await InvokeAsync(StateHasChanged);
         await ToggleSidebar();
