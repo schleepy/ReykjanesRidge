@@ -2,21 +2,54 @@
     color:white !important;
 }
 
-::deep #controls {
-    width:500px !important;
+.ui.sidebar {
+    min-width: 350px !important;
+    background-color: rgba(0,0,0,0.5) !important;
+}
+
+#controls {
+    overflow-y: visible !important;
+}
+
+#earthquakeList {
+    padding:5px;
+    overflow-x: hidden !important;
+}
+
+::deep .locationTag {
+    background-color:rgba(0,0,0,0.3);
+    padding:0px 2px 0px 2px;
+    border-radius:2px;
+    color:white;
+}
+
+#earthquakeList .earthquakeListInfo {
+    display:block;
+    color:white;
+    margin-bottom:5px;
+    background-color:rgb(14, 14, 14, 1);
+    padding:5px;
+    border-radius:2px;
+}
+
+#earthquakeList .earthquakeListInfo:hover {
+    cursor:pointer;
+    background-color:rgb(157, 0, 0, 0.50);
 }
 
 ::deep div.earthquakeInfo {
     padding-left: 35px;
     border-top: 1px solid white;
-    border-image: linear-gradient(); /* to top - at 50% transparent */
     border-image-slice: 1;
 }
 
 ::deep table.earthquakeInfo {
     color: white;
     font-size: 10px;
+    font-weight:bold;
     line-height: 0.6em;
+    background-color:rgb(0, 0, 0, 0.3);
+    border-bottom-right-radius:5px;
     border-left: 1px solid white;
 }
 
@@ -30,4 +63,55 @@
 
 ::deep table.earthquakeInfo td {
     padding-top:-5px;
+}
+
+::deep #earthquakeVisualizer {
+    cursor:grab !important;
+}
+
+.controls 
+{
+    z-index:3;
+    position:absolute !important;
+    padding:10px;
+}
+
+#topControls {
+    top: 0;
+    display:block;
+}
+
+@media only screen and (min-width: 920px) {
+    #topControls {
+        top: 0;
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+#bottomControls {
+    bottom:0;
+}
+
+::deep .ui.icon.button {
+    background-color: transparent;
+    color: white;
+    font-size: 1.5em;
+    padding: 5px !important;
+    margin: 0;
+}
+
+#filterInfo {
+    position:absolute;
+    display:block;
+    width:100%;
+    z-index:4;
+    bottom:10px;
+    color:white;
+    text-align:center;
+}
+
+::deep #infoModal {
+    background-color:rgba(0,0,0,0.5);
 }

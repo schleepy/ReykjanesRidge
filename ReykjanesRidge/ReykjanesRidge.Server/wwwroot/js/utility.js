@@ -1,4 +1,6 @@
-﻿var DotNetHelper;
+﻿//import { BloomEffect } from "/js/threejs/postprocessing/src/three.postprocessing.js";
+
+var DotNetHelper;
 
 window.registerDotNet = (dotNetHelper) => {
 	DotNetHelper = dotNetHelper;

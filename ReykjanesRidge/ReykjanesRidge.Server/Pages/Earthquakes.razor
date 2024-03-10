@@ -13,9 +13,11 @@
 
 <PageTitle>Earthquakes in Iceland</PageTitle>
 
-<div id="threejscontainer"></div>
-
-<div id="controls" class="ui sidebar right inverted vertical menu" style="width:400px;background-color:rgba(255, 0, 0, 0);overflow:hidden">
+<div id="controls" class="ui sidebar right inverted vertical menu">
+    <SemButton OnClick="ToggleSidebar"
+               Icon=Icon.Times
+               Tooltip="Close filter">
+    </SemButton>
     <div style="padding:20px">
         <span style="color:white">Magnitude range</span>
         <FomRangeSlider 
@@ -31,58 +33,92 @@
             Step=0.1m
             ShowThumbTooltip=true
             Color="teal"
+            Style="@(BuildGradientBackground())"
             @bind-FirstValue=_userSetMinMagnitude
             @bind-SecondValue=_userSetMaxMagnitude>
         </FomRangeSlider>
         <span style="color:white">Hours since occurance</span>
-        <FomRangeSlider
-            OnValueChanged="FilterChanged"
-            Min=MinHours
-            Max=MaxHours
-            Start=_userSetMinHours
-            End=_userSetMaxHours
-            Ticked=true
-            Color="blue"
-            BottomAlignedLabels=true
-            ShowThumbTooltip=true
-            MaxLabels=10
-            @bind-FirstValue=_userSetMinHours
-            @bind-SecondValue=_userSetMaxHours
-            Smooth=false
-            Labeled=true>
+        <FomRangeSlider OnValueChanged="FilterChanged"
+                        Min=MinHours
+                        Max=MaxHours
+                        Start=_userSetMinHours
+                        End=_userSetMaxHours
+                        Ticked=true
+                        Color="blue"
+                        BottomAlignedLabels=true
+                        ShowThumbTooltip=true
+                        MaxLabels=10
+                        @bind-FirstValue=_userSetMinHours
+                        @bind-SecondValue=_userSetMaxHours
+                        Smooth=false
+                        Labeled=true>
         </FomRangeSlider>
-        <span style="color:white">Depth range</span>
-        <FomRangeSlider
-            OnValueChanged="FilterChanged"
-            Min=MinDepth
-            Max=MaxDepth
-            Start=_userSetMinDepth
-            End=_userSetMaxDepth
-            BottomAlignedLabels=true
-            Ticked=true
-            Color="violet"
-            MaxLabels=10
-            ShowThumbTooltip=true
-            @bind-FirstValue=_userSetMinDepth
-            @bind-SecondValue=_userSetMaxDepth
-            Smooth=false 
-            Labeled=true>
+        <span style="color:white">Depth range (km)</span>
+        <FomRangeSlider OnValueChanged="FilterChanged"
+                        Min=MinDepth
+                        Max=MaxDepth
+                        Start=_userSetMinDepth
+                        End=_userSetMaxDepth
+                        BottomAlignedLabels=true
+                        Ticked=true
+                        Color="violet"
+                        MaxLabels=10
+                        ShowThumbTooltip=true
+                        @bind-FirstValue=_userSetMinDepth
+                        @bind-SecondValue=_userSetMaxDepth
+                        Smooth=false
+                        Labeled=true>
         </FomRangeSlider>
     </div>
 </div>
 
-<SemButton 
-    OnClick="ToggleSidebar" 
-    Class="vertical-center" 
-    Style="right:10px;z-index:2" 
-    Icon=Icon.Cog
-    Tooltip="Filter">
-</SemButton>
-
-<div style="color:white !important;z-index:99;position:absolute;bottom:5px;left:10px">
-    <h6 style="margin-bottom:-25px">Meteorological data supplied by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes">Icelandic Meteorological Office</a>. This site is a web technology demonstration and does not guarantee that data is displayed accurately, you can contact me via email for any questions regarding the project at <a href="mailto:jgh@tskoli.is">jgh@tskoli.is</a></h6>
-    <h3>Showing earthquakes in Iceland that are between @_userSetMinMagnitude and @_userSetMaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(_userSetMinHours == 0 ? $"in the last {_userSetMaxHours} hours" : $"between {_userSetMinHours} and {_userSetMaxHours} hours ago")</h3>
+<div id="earthquakeList" class="ui sidebar left inverted vertical menu">
+    <Virtualize Items="@VisibleQuakes" Context="earthquake">
+        <div class="earthquakeListInfo" @onclick="@(() => HighlightEarthquake(earthquake))">
+            <span style="display:block">@earthquake.TimeStamp</span>
+            <span style="font-size:1em"><strong>@earthquake.Magnitude richter @earthquake.FriendlyLocation</strong></span>
+        </div>
+    </Virtualize>
 </div>
+
+<div class="pusher">
+    <div id="earthquakeVisualizer" style="cursor:grab"></div>
+
+    @if (!Loading)
+    {
+        <div id="topControls" class="controls">
+            <SemButton OnClick="ToggleSidebar"
+                       Icon=Icon.Cog
+                       Tooltip="Toggle filter">
+            </SemButton>
+            <SemButton OnClick="() => standardModal.Show()"
+                       Icon=Icon.Info
+                       Tooltip="About">
+            </SemButton>
+        </div>
+
+        <SemModal Id="infoModal" @ref="standardModal">
+            <Header>
+                A visually pleasing portrayal of earthquakes
+            </Header>
+            <Content>
+                <a href="#">icelandquakes</a> uses meteorological data collected by the <a href="https://en.vedur.is/earthquakes-and-volcanism/earthquakes" target="_blank">Icelandic Meteorological Office</a> and does not guarantee that the displayed earthquakes are portrayed accurately as it is mainly a web technology demonstration.<br />
+                <br />
+                If you have any questions or inquiries you can send me an email at <a href="mailto:jongunnar.hertervig@gmail.com">jongunnar.hertervig@gmail.com</a><br />
+                <br />
+                Best viewed on desktop.
+            </Content>
+        </SemModal>
+
+        <p id="filterInfo">currently displaying earthquakes in Iceland that are between @_userSetMinMagnitude and @_userSetMaxMagnitude in magnitude at depths between @_userSetMinDepth and @_userSetMaxDepth km that occured @(_userSetMinHours == 0 ? $"in the last {_userSetMaxHours} hours" : $"between {_userSetMinHours} and {_userSetMaxHours} hours ago")</p>
+    }
+</div>
+
+@if (Loading) {
+<div class="ui active dimmer">
+    <div class="ui text loader">Loading</div>
+</div>
+}
 
 @code {
     [Parameter]
@@ -97,6 +133,12 @@
     public decimal MinDepth { get; set; }
     [Parameter]
     public decimal MaxDepth { get; set; }
+    [Parameter]
+    public bool ThreeD {get; set;} = true;
+    [Parameter]
+    public bool Loading { get; set; } = true;
+
+    private SemModal standardModal { get; set; }
 
     private decimal _userSetMinMagnitude,
                     _userSetMaxMagnitude,
@@ -107,15 +149,20 @@
                     _minDays,
                     _maxDays;
 
-    public List<EarthquakeDto> Quakes { get; set; }
+    public ICollection<EarthquakeDto> Quakes { get; set; }
+    public ICollection<EarthquakeDto> VisibleQuakes { get; set; }
+    public IEnumerable<EarthquakeDto> HiddenQuakes { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         Quakes = await EarthquakeService.GetAll(); // Get all earthquakes
+        VisibleQuakes = Quakes;
 
         await ParseQuakes();
         await ParseUserSettings();
+
+        var gradientColors = BuildGradientBackground();
     }
 
     protected async Task ParseQuakes()
@@ -164,16 +211,7 @@
             var dotNetReference = DotNetObjectReference.Create(this);
 
             // Load initial scene
-            await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load", dotNetReference);
-
-            // Render quakes
-            var visibleQuakes = GetVisibleQuakes();
-            var hiddenQuakes = Quakes.Except(visibleQuakes);
-            await AddEarthquake(visibleQuakes);
-            await AddEarthquake(hiddenQuakes, false);
-
-            // Render location tags
-            await AddLocation(EarthquakeVisualizerSettings.Locations);
+            await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.load", dotNetReference, EarthquakeVisualizerSettings);
 
             // event handling
             // EarthquakeNotifierService.OnEarthquakeAdded += EarthquakeAdded;
@@ -231,6 +269,11 @@
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.showEarthquake", Ids);
     }
 
+    public async Task HighlightEarthquake(EarthquakeDto earthquake)
+    {
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.highlightEarthquake", earthquake.ID, earthquake.Magnitude);
+    }
+
     public async Task ToggleSidebar()
     {
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.toggleSidebar");
@@ -246,10 +289,33 @@
         await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.addLocation", location);
     }
 
+    /*public async Task ToggleCamera()
+    {
+        ThreeD = !ThreeD;
+        await JSRuntime.InvokeVoidAsync("EarthquakeVisualizerJS.toggleCamera", ThreeD);
+    }*/
+
     [JSInvokable("getEarthquake")]
     public async Task<EarthquakeDto> GetEarthquake(Guid Id)
     {
         return Quakes.FirstOrDefault(q => q.ID == Id);
+    }
+
+    [JSInvokable("loaded")]
+    public async Task FinishedLoading()
+    {
+        // Render quakes
+        var visibleQuakes = GetVisibleQuakes();
+        var hiddenQuakes = Quakes.Except(visibleQuakes);
+        await AddEarthquake(visibleQuakes);
+        await AddEarthquake(hiddenQuakes, false);
+
+        // Render location tags
+        await AddLocation(EarthquakeVisualizerSettings.Locations);
+
+        Loading = false;
+        await InvokeAsync(StateHasChanged);
+        await ToggleSidebar();
     }
     #endregion
 
@@ -258,27 +324,50 @@
         var quakes = Quakes;
 
         // THIS IS FUCKING HOT DUDE, C# 9.0 DOING IT
-        var visibleQuakes = GetVisibleQuakes();
+        VisibleQuakes = GetVisibleQuakes();
 
         // Filter out all other quakes
-        var hiddenQuakes = quakes.Except(visibleQuakes);
+        HiddenQuakes = quakes.Except(VisibleQuakes);
 
-        await ShowEarthquake(visibleQuakes.Select(q => q.ID));
+        await ShowEarthquake(VisibleQuakes.Select(q => q.ID));
 
-        await HideEarthquake(hiddenQuakes.Select(q => q.ID));
+        await HideEarthquake(HiddenQuakes.Select(q => q.ID));
 
         await InvokeAsync(StateHasChanged);
     }
 
-    private IEnumerable<EarthquakeDto> GetVisibleQuakes()
+    private string BuildGradientBackground()
+    {
+        string result = string.Empty;
+        decimal gap = MaxMagnitude - MinMagnitude;
+
+        int y = 1;
+        for (int i = Convert.ToInt32(MinMagnitude); i < MaxMagnitude; i++)
+        {
+            result += $"rgba({EarthquakeVisualizerSettings.RichterColors[i]},1) {(100 / gap) * (y-1)}% {(100 / gap) * y}%";
+
+            if (i < MaxMagnitude-1)
+            {
+                result += ",";
+            }
+
+            y++;
+        }
+
+        return $"background:linear-gradient(90deg,{result});background-size:100% 20%;background-repeat:repeat-x";
+    }
+
+    private List<EarthquakeDto> GetVisibleQuakes()
     {
         var quakes = Quakes;
 
-        return from quake in quakes
+        var visibleQuakes = from quake in quakes
                let hoursSince = Convert.ToDecimal((DateTime.Now - quake.TimeStamp).TotalHours)
                where hoursSince >= _userSetMinHours && hoursSince <= _userSetMaxHours &&
                quake.Magnitude >= _userSetMinMagnitude && quake.Magnitude <= _userSetMaxMagnitude &&
                quake.Depth >= _userSetMinDepth && quake.Depth <= _userSetMaxDepth
                select quake;
+
+        return visibleQuakes.ToList();
     }
 }

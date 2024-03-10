@@ -1,29 +1,55 @@
 ﻿import * as THREE from '/js/threejs/three.module.js';
 import { OrbitControls } from '/js/threejs/controls/OrbitControls.js';
 import { FBXLoader } from '/js/threejs/loaders/FBXLoader.js';
-import { CSS2DRenderer, CSS2DObject } from '/js/threejs/renderers/CSS2DRenderer.js';
-import { Interaction } from '/js/threejs/interaction/src/three.interaction.js'; // Add on from from jasonChen1982 on github, thank you!
+import {
+    CSS2DRenderer,
+    CSS2DObject
+} from '/js/threejs/renderers/CSS2DRenderer.js';
+import { Interaction } from '/js/threejs/interaction/src/three.interaction.js';
+import { EffectComposer } from '/js/threejs/postprocessing/EffectComposer.js';
+import { RenderPass } from '/js/threejs/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from '/js/threejs/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from '/js/threejs/postprocessing/ShaderPass.js';
+import { FXAAShader } from '/js/threejs/postprocessing/shaders/FXAAShader.js';
 
-var container = document.getElementById('threejscontainer');
+var container = document.getElementById('earthquakeVisualizer');
 var clock, controls;
-var camera, scene, renderer, labelRenderer, mixer, animations, iceland, interaction;
+var composer, perspectiveCamera, orthographicCamera, activeCamera, scene, renderScene, bloomPass, effectFXAA, renderer, labelRenderer, mixer, animations, iceland, interaction;
 var earthquakes = [];
 var dotNetReference;
 var earthquakeInfos = [];
+var earthquakeEpicenters = [];
+var visualizerSettings;
+
+const params = {
+    exposure: 1,
+    bloomStrength: 1,
+    bloomThreshold: 0,
+    bloomRadius: 0
+};
 
 $(document).ready(function () {
 
+    $(".ui.sidebar").sidebar({
+        transition: 'overlay',
+        mobileTransition: 'overlay',
+        'dimPage': false,
+        closable: false
+    });
+
     $(window).resize(function () {
 
-        if (renderer == null || camera == null)
+        if (renderer == null || activeCamera == null)
             return;
 
         var box = container.getBoundingClientRect();
         renderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+        effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix()
+        activeCamera.aspect = window.innerWidth / window.innerHeight;
+        activeCamera.updateProjectionMatrix()
     });
 });
 
@@ -39,17 +65,9 @@ const magnitudeColors = [ // colors based on magnitude, magnitude is floored and
 
 function animate() {
     requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-    labelRenderer.render(scene, camera);
-}
-
-function render() {
-    var delta = clock.getDelta();
-    if (mixer !== undefined) {
-        mixer.update(delta);
-    }
-    renderer.render(scene, camera);
-    labelRenderer.render(scene, camera);
+    //renderer.render(scene, camera);
+    composer.render();
+    labelRenderer.render(scene, activeCamera);
 }
 
 /**
@@ -60,7 +78,7 @@ function render() {
 
 function loadFBX(path, context) {
     const fbxLoader = new FBXLoader()
-    fbxLoader.load('/models/iceland_flat_svg.fbx', function (object) {
+    fbxLoader.load(path, function (object) {
             object.scale.set(.4, .4, .4)
             object.position.setX(36);
             object.position.setZ(-20);
@@ -69,9 +87,9 @@ function loadFBX(path, context) {
             object.traverse(function (child) {
                 if (child.material) {
                     child.material = new THREE.MeshStandardMaterial({
-                        color: 0x262626,
-                        emissive: 0x262626,
-                        opacity: 0.1
+                        color: 0x346beb,
+                        emissive: 0x346beb,
+                        opacity: 1
                     });
                 }
             })
@@ -80,20 +98,42 @@ function loadFBX(path, context) {
 }
 
 // Load initial scene and populate with earthquakes
-function loadScene(dotNetRef) {
+function loadScene(dotNetRef, settings) {
 
     dotNetReference = dotNetRef;
+    visualizerSettings = settings;
 
     if (!container) {
         return;
     }
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
-    camera.position.copy(cameraStartingPos); // Set camera starting pos
+    scene.background = new THREE.Color(0x0d0d0d);
+    perspectiveCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 20000);
+    perspectiveCamera.position.copy(cameraStartingPos); // Set camera starting pos
 
-    renderer = new THREE.WebGLRenderer();
+    activeCamera = perspectiveCamera;
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ReinhardToneMapping;
+
+    renderScene = new RenderPass(scene, activeCamera);
+
+    effectFXAA = new ShaderPass(FXAAShader);
+    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+    effectFXAA.renderToScreen = true;
+
+    bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+    bloomPass.threshold = params.bloomThreshold;
+    bloomPass.strength = params.bloomStrength;
+    bloomPass.radius = params.bloomRadius;
+
+    composer = new EffectComposer(renderer);
+    composer.addPass(renderScene);
+    composer.addPass(effectFXAA);
+    composer.addPass(bloomPass);
 
     labelRenderer = new CSS2DRenderer();
     labelRenderer.setSize(window.innerWidth, window.innerHeight);
@@ -101,35 +141,30 @@ function loadScene(dotNetRef) {
     labelRenderer.domElement.style.top = '0px';
 
     // interaction
-    interaction = new Interaction(labelRenderer, scene, camera);
+    interaction = new Interaction(labelRenderer, scene, perspectiveCamera);
 
     container.appendChild(renderer.domElement);
     container.appendChild(labelRenderer.domElement);
 
     iceland = new THREE.Group();
 
-    var icelandModel = loadFBX('/models/iceland_flat_svg.fbx', iceland);
+    var icelandModel = loadFBX(settings.model, iceland);
 
     scene.add(iceland);
-
-    /*var gridHelper = new THREE.GridHelper(100, 2);
-    scene.add(gridHelper);*/
 
     var ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
 
-    var pointLight = new THREE.PointLight(0xffffff, 0.8);
-    scene.add(camera);
-    camera.add(pointLight);
-
-    controls = new OrbitControls(camera, labelRenderer.domElement);
-    controls.screenSpacePanning = false;
+    controls = new OrbitControls(perspectiveCamera, labelRenderer.domElement);
+    controls.screenSpacePanning = true;
     controls.minDistance = 5;
-    controls.maxDistance = 3000;
+    controls.maxDistance = 1000;
     controls.target.copy(cameraStartingFocusPoint);
     controls.update();  
 
     animate();
+
+    dotNetRef.invokeMethodAsync("loaded");
 }
 
 function AddEarthquake(earthquake, visible = true)
@@ -144,48 +179,29 @@ function AddEarthquake(earthquake, visible = true)
     if (iceland == null)
         return
 
-    var magnitude = earthquake["magnitude"];
-    var magnitudeColor = new THREE.Color(magnitudeColors[Math.floor(magnitude)]);
-
-    var geometry = new THREE.SphereGeometry(magnitude/2, 32, 10);
-    var material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    var sphere = new THREE.Mesh(geometry, material);
+    var magnitude = earthquake.magnitude;
+    var magnitudeColor = new THREE.Color("rgb(" + visualizerSettings.richterColors[Math.floor(magnitude)] + ")");
 
     // Get X and Y position from longitude and latitude
-    var position = GCStoCartesian(earthquake["latitude"], earthquake["longitude"]);
+    var position = GCStoCartesian(earthquake.latitude, earthquake.longitude);
 
-    sphere.material.color.set(magnitudeColor);
-    sphere.material.emissive.set(magnitudeColor);
-    sphere.material.transparent = true;
-    sphere.material.opacity = 0.6;
+    var spriteImage = new THREE.TextureLoader().load("/img/epicenter.png");
+    var spriteMaterial = new THREE.SpriteMaterial({
+        map: spriteImage
+    });
 
+    var scale = Math.ceil(magnitude)/2;
+    var sprite = new THREE.Sprite(spriteMaterial);
+    sprite.material.color = magnitudeColor;
+    sprite.scale.set(scale, scale, scale)
+
+    // create earthquakegroup
     var earthquakeGroup = new THREE.Group();
 
     earthquakeGroup.position.copy(position);
-    earthquakeGroup.position.setY(-(earthquake["depth"])); // Set depth
-    earthquakeGroup.add(sphere);
+    earthquakeGroup.position.setY(-(earthquake.depth)); // Set depth
     earthquakeGroup.visible = visible;
-
-    var surface = earthquake["depth"] + (Math.random() * 0.3);
-
-    // draw line reaching the surface from the epicenter
-    var points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, surface, 0)];
-    var line = DrawLine(points);
-    line.material.color.set(magnitudeColor);
-    line.material.emissive.set(magnitudeColor);
-    line.material.transparent = true;
-    line.material.opacity = 0.2;
-    earthquakeGroup.add(line);
-
-    // draw circle on surface
-    var circle = DrawCircle(earthquake["magnitude"]/2);
-    circle.rotation.x = -(Math.PI / 2);
-    circle.position.setY(surface);
-    circle.material.color.set(magnitudeColor);
-    circle.material.emissive.set(magnitudeColor);
-    circle.material.transparent = true;
-    circle.material.opacity = 0.5;
-    earthquakeGroup.add(circle);
+    earthquakeGroup.add(sprite);
     earthquakeGroup.layers.set(1);
 
     iceland.add(earthquakeGroup);
@@ -201,18 +217,14 @@ function AddEarthquake(earthquake, visible = true)
     // click on earthquake group
     earthquakeGroup.on('click', function (ev) {
 
-        for (var i = 0; i < earthquakeInfos.length; i++) {
-            iceland.remove(earthquakeInfos[i]);
-        }
-        earthquakeInfos = [];
-
         DisplayEarthquakeInfo(ev.data.target);
 
         // focus target
         controls.target.copy(ev.data.target.position);
+        activeCamera.updateProjectionMatrix();
     });
 
-    earthquakes[earthquake["id"]] = earthquakeGroup.id;
+    earthquakes[earthquake.id] = earthquakeGroup.id;
 }
 function AddLocation(location)
 {
@@ -225,8 +237,7 @@ function AddLocation(location)
 
     var locationTagDiv = document.createElement('div');
     locationTagDiv.textContent = location["name"];
-    locationTagDiv.style.backgroundColor = 'transparent';
-    locationTagDiv.style.color = 'rgb(255, 255, 255)';
+    locationTagDiv.className = "locationTag";
     locationTagDiv.style.fontSize = (location["fontSize"]).toString() + "px";
 
     var position = GCStoCartesian(location["latitude"], location["longitude"]);
@@ -255,10 +266,11 @@ function FocusEarthquake(event)
     };*/
 
     // scale up
-    target.scale.setX(1.1);
-    target.scale.setY(1.1);
-    target.scale.setZ(1.1);
+    target.scale.setX(2);
+    target.scale.setY(2);
+    target.scale.setZ(2);
 }
+
 function UnfocusEarthquake(event) {
     var target = event.data.target;
 
@@ -275,7 +287,30 @@ function UnfocusEarthquake(event) {
     target.scale.setZ(1);
 }
 
+function HighlightEarthquake(id, magnitude)
+{
+    var target = scene.getObjectById(earthquakes[id]);
+    var scale = 10 - magnitude;
+
+    target.scale.setX(scale);
+    target.scale.setY(scale);
+    target.scale.setZ(scale);
+
+    DisplayEarthquakeInfo(target);
+
+    setTimeout(function () {
+        target.scale.setX(1);
+        target.scale.setY(1);
+        target.scale.setZ(1);
+    }, 1500);
+}
+
 function DisplayEarthquakeInfo(target) {
+
+    for (var i = 0; i < earthquakeInfos.length; i++) {
+        iceland.remove(earthquakeInfos[i]);
+    }
+    earthquakeInfos = [];
 
     var earthquakeId = getKeyByValue(earthquakes, target.id);
 
@@ -291,27 +326,27 @@ function DisplayEarthquakeInfo(target) {
 
             var timeStampRow = earthquakeInfoTable.insertRow(0);
             timeStampRow.insertCell(0).innerHTML = "Timestamp";
-            timeStampRow.insertCell(1).innerHTML = earthquake["timeStamp"];
+            timeStampRow.insertCell(1).innerHTML = earthquake.timeStamp;
 
             var locationRow = earthquakeInfoTable.insertRow(1);
             locationRow.insertCell(0).innerHTML = "Location";
-            locationRow.insertCell(1).innerHTML = earthquake["friendlyLocation"];
+            locationRow.insertCell(1).innerHTML = earthquake.friendlyLocation;
 
             var magnitudeRow = earthquakeInfoTable.insertRow(2);
             magnitudeRow.insertCell(0).innerHTML = "Magnitude";
-            magnitudeRow.insertCell(1).innerHTML = earthquake["magnitude"];
+            magnitudeRow.insertCell(1).innerHTML = earthquake.magnitude;
 
             var latitudeRow = earthquakeInfoTable.insertRow(3);
             latitudeRow.insertCell(0).innerHTML = "Latitude";
-            latitudeRow.insertCell(1).innerHTML = earthquake["latitude"];
+            latitudeRow.insertCell(1).innerHTML = earthquake.latitude;
 
             var longitudeRow = earthquakeInfoTable.insertRow(4);
             longitudeRow.insertCell(0).innerHTML = "Longitude";
-            longitudeRow.insertCell(1).innerHTML = earthquake["longitude"];
+            longitudeRow.insertCell(1).innerHTML = earthquake.longitude
 
             var depthRow = earthquakeInfoTable.insertRow(5);
             depthRow.insertCell(0).innerHTML = "Depth";
-            depthRow.insertCell(1).innerHTML = earthquake["depth"];
+            depthRow.insertCell(1).innerHTML = earthquake.depth + " km";
 
             var earthquakeInfo = new CSS2DObject(earthquakeInfoDiv);
             earthquakeInfo.position.copy(target.position);
@@ -319,6 +354,30 @@ function DisplayEarthquakeInfo(target) {
             iceland.add(earthquakeInfo);
             earthquakeInfos.push(earthquakeInfo);
         });
+}
+
+function ToggleCamera(threeD)
+{
+    if (threeD)
+    {
+        controls.enabled = true;
+        activeCamera.fov = 50;
+        scene.rotation.y -= 4.8;
+        scene.position.z += 40;
+        activeCamera.updateProjectionMatrix();
+    }
+    else
+    {
+        controls.enabled = false;
+        activeCamera.fov = 5;
+        activeCamera.position.x = 18.78;
+        activeCamera.position.y = 4450;
+        activeCamera.position.z = 19.94;
+        scene.rotation.y += 4.8;
+        scene.position.z -= 40;
+        activeCamera.updateProjectionMatrix();
+        controls.update();
+    }
 }
 
 function DrawLine(points)
@@ -351,14 +410,16 @@ function GCStoCartesian(lat, lon, radius = earthRadius) {
 }
 
 window.EarthquakeVisualizerJS = {
-    load:             (dotNetRef) => { loadScene(dotNetRef); },
+    load:             (dotNetRef, settings) => { loadScene(dotNetRef, settings); },
     addEarthquake:    (earthquake, visible) => { AddEarthquake(earthquake, visible); },
     addLocation:      (location) => { AddLocation(location); },
     //removeEarthquake: (id) => { removeEarthquake(id); },
     showEarthquake:   (ids) => { showEarthquake(ids); },
     hideEarthquake:   (ids) => { hideEarthquake(ids); },
     setCameraPos:     (x, y, z) => { setCameraPosition(x, y, z) },
-    toggleSidebar:    () => { toggleSidebar(); }
+    toggleSidebar:    () => { toggleSidebar(); },
+    toggleCamera:     (threeD) => { ToggleCamera(threeD); },
+    highlightEarthquake: (id, magnitude) => { HighlightEarthquake(id, magnitude) }
 };
 
 function hideEarthquake(ids)
@@ -392,15 +453,18 @@ function showEarthquake(ids)
 }
     
 function toggleSidebar() {
-    $(".ui.sidebar").sidebar({transition: 'overlay'});
-    $('.ui.sidebar')
-        .sidebar('toggle');
+    $('#controls').sidebar('toggle');
+
+    if (window.innerWidth > 920) {
+        $("#earthquakeList").sidebar('toggle');
+    }
 }
 
 function Debug() {
-    if (camera != null) {
+    if (perspectiveCamera != null) {
         console.log("camera position: ");
-        console.log(camera.position);
+        console.log(perspectiveCamera.position);
+        console.log(perspectiveCamera.rotation);
     }
     setTimeout(Debug, 5000);
 }
@@ -410,7 +474,7 @@ function setCameraPosition(x, y, z)
     if (camera == null)
         return;
 
-    camera.position.x = x;
-    camera.position.y = y;
-    camera.position.z = z;
+    perspectiveCamera.position.x = x;
+    perspectiveCamera.position.y = y;
+    perspectiveCamera.position.z = z;
 }
